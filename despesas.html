@@ -70,7 +70,6 @@
     }
     
     /* Resto do CSS da página */
-    /* Basic Reset */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Orbitron', sans-serif;
@@ -135,7 +134,6 @@
       th.print-hide, td.print-hide { display: none !important; }
       table { border: 1px solid #000; }
       footer { text-align: center; }
-      /* Print footer: data/hora e mensagem no rodapé */
       #print-footer {
         display: block;
         text-align: right;
@@ -166,7 +164,7 @@
   <div id="page-content" style="display: none;">
     <h1>Relatório de Despesas - Babylon Delicatessen</h1>
     
-    <!-- Área dos filtros (somente para visualização em tela) -->
+    <!-- Área dos filtros (apenas para visualização em tela) -->
     <div id="filter-container" class="no-print">
       <div id="filter-date">
         <label for="filter-year">Ano:</label>
@@ -214,21 +212,11 @@
     </footer>
   </div>
   
+  <!-- Inclui a lógica de login a partir de um arquivo externo -->
+  <script src="login.js"></script>
+  
+  <!-- Resto do script da página (funções de filtros, ordenação, etc.) -->
   <script>
-    // Modal de Login
-    document.getElementById("login-btn").addEventListener("click", function() {
-      var username = document.getElementById("username").value;
-      var password = document.getElementById("password").value;
-      // Credenciais de exemplo: usuário "admin" e senha "123456"
-      if(username === "admin" && password === "123456") {
-        document.getElementById("login-modal").style.display = "none";
-        document.getElementById("page-content").style.display = "block";
-      } else {
-        document.getElementById("login-error").textContent = "Usuário ou senha incorretos!";
-      }
-    });
-    
-    // Resto da funcionalidade da página
     const publishedHtmlUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true";
     
     const uniqueMonths = new Set();
@@ -739,7 +727,6 @@
         populateAllDropdowns();
         addFilterListeners();
         applyFilter();
-        // Ordena inicialmente a coluna "Data" em ordem descendente (data atual no topo)
         sortTableByColumn(displayHeaders.findIndex(h => h === "Data"), "desc", "date");
       })
       .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
