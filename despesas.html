@@ -25,7 +25,7 @@
       text-align: center;
     }
     #filter-container label {
-      margin-right: 10px;
+      margin-right: 5px;
       color: #00eaff;
     }
     #filter-container select {
@@ -35,6 +35,7 @@
       background-color: #111;
       color: #00eaff;
       border-radius: 4px;
+      margin-right: 20px;
     }
     #total-container {
       width: 90%;
@@ -95,10 +96,14 @@
 <body>
   <h1>Relatório de Despesas - Babylon Delicatessen</h1>
   
-  <!-- Área do filtro -->
+  <!-- Área dos filtros (dropdowns separados para Mês e Ano) -->
   <div id="filter-container">
-    <label for="filter-select">Filtrar por Mês/Ano:</label>
-    <select id="filter-select">
+    <label for="filter-month">Mês:</label>
+    <select id="filter-month">
+      <option value="all">Todos</option>
+    </select>
+    <label for="filter-year">Ano:</label>
+    <select id="filter-year">
       <option value="all">Todos</option>
     </select>
   </div>
@@ -137,6 +142,42 @@
       const formattedTotal = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(total);
       document.getElementById("total-container").textContent = "Total Valor Pago: " + formattedTotal;
     }
+    
+    // Função para aplicar os filtros combinados (mês e ano)
+    function applyFilter() {
+      const selectedMonth = document.getElementById("filter-month").value;
+      const selectedYear = document.getElementById("filter-year").value;
+      
+      const tbodyRows = document.querySelectorAll("#sheet-table tbody tr");
+      tbodyRows.forEach(function(row) {
+        // Se não houver coluna de data, exibe a linha
+        if (idxDataDespesa === -1) {
+          row.style.display = "";
+          return;
+        }
+        let cell = row.children[idxDataDespesa];
+        if (cell) {
+          let dateText = cell.textContent.trim();
+          let parts = dateText.split("/");
+          if (parts.length === 3) {
+            let rowMonth = parts[1];
+            let rowYear = parts[2];
+            // Verifica se a linha atende aos filtros (considerando "all" como opção sem filtro)
+            const matchMonth = (selectedMonth === "all" || rowMonth === selectedMonth);
+            const matchYear = (selectedYear === "all" || rowYear === selectedYear);
+            row.style.display = (matchMonth && matchYear) ? "" : "none";
+          } else {
+            row.style.display = "";
+          }
+        }
+      });
+      updateTotalSum();
+    }
+    
+    // Declaração de variáveis globais para índices e conjuntos dos filtros
+    let idxDataDespesa = -1;
+    const uniqueMonths = new Set();
+    const uniqueYears = new Set();
     
     fetch(publishedHtmlUrl)
       .then(response => response.text())
@@ -194,16 +235,15 @@
           }
         });
         
-        // Calcula os índices das colunas de "Data da Despesa" e "Valor Pago"
-        const idxDataDespesa = headers.findIndex(text => text.toLowerCase().includes("data da despesa"));
+        // Calcula o índice da coluna "Data da Despesa" e "Valor Pago"
+        idxDataDespesa = headers.findIndex(text => text.toLowerCase().includes("data da despesa"));
         const idxValorPago = headers.findIndex(text => text.toLowerCase().includes("valor pago"));
         
-        // Mapeamento para substituir os textos dos cabeçalhos
+        // Mapeamento para substituir os textos dos cabeçalhos conforme solicitado
         const headerMapping = {
           "data da despesa": "Data",
           "selecione a categoria": "Categoria",
           "escolha a opção de pagamento": "Forma de Pgto",
-          "nº do documento": "Nº do documento", // Não será exibida, pois foi excluída
           "nome do credor": "Credor",
           "descrição": "Descrição",
           "valor pago": "Valor",
@@ -228,9 +268,6 @@
         });
         thead.appendChild(headerTr);
         
-        // Conjunto para armazenar combinações únicas de mês/ano
-        const uniqueDates = new Set();
-        
         // --- Processa as linhas de dados (a partir da terceira linha – índice 2) ---
         const tbody = document.querySelector("#sheet-table tbody");
         for (let i = 2; i < rows.length; i++) {
@@ -252,14 +289,11 @@
           if (idxDataDespesa !== -1) {
             let dataDespesa = filteredCells[idxDataDespesa].textContent.trim();
             if (dataDespesa === "") continue;
-          }
-          
-          // Se houver coluna "Data da Despesa", extrai o mês/ano e armazena
-          if (idxDataDespesa !== -1) {
-            let dateText = filteredCells[idxDataDespesa].textContent.trim();
-            let parts = dateText.split("/");
+            // Extrai mês e ano para os filtros
+            let parts = dataDespesa.split("/");
             if (parts.length === 3) {
-              uniqueDates.add(parts[1] + "/" + parts[2]);
+              uniqueMonths.add(parts[1]);
+              uniqueYears.add(parts[2]);
             }
           }
           
@@ -268,7 +302,6 @@
           let valorPagoNum = 0;
           filteredCells.forEach((cell, j) => {
             const td = document.createElement("td");
-            // Se a coluna for de anexo (comprovante ou recibo), insere o emoji se houver link
             if (displayHeaders[j].toLowerCase().includes("comprovante") || displayHeaders[j].toLowerCase().includes("recibo")) {
               const aTag = cell.querySelector("a");
               if (aTag && aTag.href) {
@@ -282,7 +315,6 @@
                 td.textContent = "";
               }
             }
-            // Se for a coluna "Valor Pago", formata o número como moeda (R$)
             else if (displayHeaders[j].toLowerCase().includes("valor")) {
               let raw = cell.textContent.trim();
               raw = raw.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
@@ -301,46 +333,33 @@
           tbody.appendChild(tr);
         }
         
-        // --- Popula o dropdown de filtro com os valores únicos (mês/ano) ---
-        const filterSelect = document.getElementById("filter-select");
-        let uniqueDatesArray = Array.from(uniqueDates);
-        uniqueDatesArray.sort(function(a, b) {
-          let [monthA, yearA] = a.split("/");
-          let [monthB, yearB] = b.split("/");
-          return parseInt(yearA) - parseInt(yearB) || parseInt(monthA) - parseInt(monthB);
-        });
-        uniqueDatesArray.forEach(function(val) {
+        // --- Popula os dropdowns de filtro com os valores únicos ---
+        // Para Mês
+        const filterMonth = document.getElementById("filter-month");
+        let uniqueMonthsArray = Array.from(uniqueMonths);
+        uniqueMonthsArray.sort((a, b) => parseInt(a) - parseInt(b));
+        uniqueMonthsArray.forEach(function(month) {
           let option = document.createElement("option");
-          option.value = val;
-          option.textContent = val;
-          filterSelect.appendChild(option);
+          option.value = month;
+          option.textContent = month;
+          filterMonth.appendChild(option);
+        });
+        // Para Ano
+        const filterYear = document.getElementById("filter-year");
+        let uniqueYearsArray = Array.from(uniqueYears);
+        uniqueYearsArray.sort((a, b) => parseInt(a) - parseInt(b));
+        uniqueYearsArray.forEach(function(year) {
+          let option = document.createElement("option");
+          option.value = year;
+          option.textContent = year;
+          filterYear.appendChild(option);
         });
         
-        // Função para aplicar o filtro por mês/ano e atualizar o total
-        function applyFilter() {
-          const selected = filterSelect.value;
-          const tbodyRows = document.querySelectorAll("#sheet-table tbody tr");
-          tbodyRows.forEach(function(row) {
-            if (idxDataDespesa === -1) {
-              row.style.display = "";
-              return;
-            }
-            let cell = row.children[idxDataDespesa];
-            if (cell) {
-              let dateText = cell.textContent.trim();
-              let parts = dateText.split("/");
-              if (parts.length === 3) {
-                let monthYear = parts[1] + "/" + parts[2];
-                row.style.display = (selected === "all" || monthYear === selected) ? "" : "none";
-              } else {
-                row.style.display = "";
-              }
-            }
-          });
-          updateTotalSum();
-        }
+        // Adiciona os listeners aos dropdowns para filtrar automaticamente
+        filterMonth.addEventListener("change", applyFilter);
+        filterYear.addEventListener("change", applyFilter);
         
-        filterSelect.addEventListener("change", applyFilter);
+        // Aplica o filtro inicialmente para atualizar o total
         applyFilter();
         
       })
