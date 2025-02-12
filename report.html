@@ -31,16 +31,17 @@
       margin: 20px auto;
       text-align: center;
     }
-    /* Linha 1: Filtros de Data – Ano vem antes do Mês */
-    #filter-date { margin-bottom: 10px; }
-    /* Linha 2: Filtros para Categoria, Forma de Pgto, Credor e Pago Por */
-    #filter-other { margin-bottom: 10px; }
+    /* Filtros em duas linhas */
+    #filter-date, #filter-other { margin-bottom: 10px; }
     #filter-container label { margin-right: 5px; color: #00eaff; }
     #filter-container select {
-      padding: 5px; font-size: 16px;
+      padding: 5px;
+      font-size: 16px;
       border: 2px solid #00eaff;
-      background-color: #111; color: #00eaff;
-      border-radius: 4px; margin-right: 20px;
+      background-color: #111;
+      color: #00eaff;
+      border-radius: 4px;
+      margin-right: 20px;
     }
     /* Botão de impressão (na tela) */
     #print-btn {
@@ -68,7 +69,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0, 0, 0, 0.8);
       border: 4px solid #00eaff;
       border-radius: 8px;
     }
@@ -96,12 +97,14 @@
     }
     /* Elementos que não serão impressos (na tela) */
     .no-print { }
-    /* Elementos exibidos somente na impressão */
+    /* Elementos que serão exibidos apenas na impressão */
     .print-only { display: none; }
-    /* Durante a impressão, ocultamos os filtros, total e o rodapé da tela, além da tabela original; exibimos os elementos print-only */
+    /* Na impressão, ocultamos os elementos da tela e exibimos os print-only */
     @media print {
       #filter-container, #total-container, footer, #sheet-table { display: none !important; }
       .print-only { display: block !important; }
+      .hide-print { display: none !important; }
+      table { border: 1px solid #000; }
     }
     /* Cabeçalho e rodapé de impressão */
     #print-header, #print-footer {
@@ -110,63 +113,45 @@
       margin: 10px 0;
       font-size: 14px;
     }
-    /* Container que receberá o relatório agrupado para impressão */
-    #print-body {
-      display: none;
-    }
-    @media print {
-      #print-body { display: block !important; }
-    }
-    /* Classe para ocultar colunas na impressão */
-    .hide-print { display: none !important; }
+    /* Container para relatório impresso */
+    #print-body { display: none; }
+    @media print { #print-body { display: block !important; } }
   </style>
 </head>
 <body>
   <h1>Relatório de Despesas - Babylon Delicatessen</h1>
   
-  <!-- Filtros (apenas na tela) -->
+  <!-- Filtros (na tela) -->
   <div id="filter-container" class="no-print">
     <div id="filter-date">
       <label for="filter-year">Ano:</label>
-      <select id="filter-year">
-        <option value="all">Todos</option>
-      </select>
+      <select id="filter-year"><option value="all">Todos</option></select>
       <label for="filter-month">Mês:</label>
-      <select id="filter-month">
-        <option value="all">Todos</option>
-      </select>
+      <select id="filter-month"><option value="all">Todos</option></select>
       <button id="print-btn" onclick="window.print()" title="Imprimir relatório">🖨️</button>
     </div>
     <div id="filter-other">
       <label for="filter-categoria">Categoria:</label>
-      <select id="filter-categoria">
-        <option value="all">Todos</option>
-      </select>
+      <select id="filter-categoria"><option value="all">Todos</option></select>
       <label for="filter-forma">Forma de Pgto:</label>
-      <select id="filter-forma">
-        <option value="all">Todos</option>
-      </select>
+      <select id="filter-forma"><option value="all">Todos</option></select>
       <label for="filter-credor">Credor:</label>
-      <select id="filter-credor">
-        <option value="all">Todos</option>
-      </select>
+      <select id="filter-credor"><option value="all">Todos</option></select>
       <label for="filter-pago">Pago Por:</label>
-      <select id="filter-pago">
-        <option value="all">Todos</option>
-      </select>
+      <select id="filter-pago"><option value="all">Todos</option></select>
     </div>
   </div>
   
-  <!-- Total exibido na tela -->
+  <!-- Total (na tela) -->
   <div id="total-container" class="no-print">Total Valor Pago: R$ 0,00</div>
   
   <!-- Cabeçalho de impressão -->
   <div id="print-header" class="print-only"></div>
   
-  <!-- Container para o relatório agrupado de impressão -->
+  <!-- Container para relatório impresso -->
   <div id="print-body" class="print-only"></div>
   
-  <!-- Tabela original (apenas na tela) -->
+  <!-- Tabela original (na tela) -->
   <div class="table-responsive">
     <table id="sheet-table">
       <thead></thead>
@@ -185,7 +170,7 @@
     // URL do Google Sheets publicado
     const publishedHtmlUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true";
     
-    // Conjuntos para armazenar os valores únicos dos filtros
+    // Conjuntos para os valores únicos dos filtros
     const uniqueMonths = new Set();
     const uniqueYears = new Set();
     const uniqueCategories = new Set();
@@ -193,13 +178,13 @@
     const uniqueCredor = new Set();
     const uniquePagoPor = new Set();
     
-    // Variáveis globais para os índices finais (após mapeamento) dos filtros na tabela exibida
+    // Variáveis globais para os índices finais dos filtros na tabela exibida
     let idxDataFinal = -1, idxCategoriaFinal = -1, idxFormaFinal = -1,
         idxCredorFinal = -1, idxPagoFinal = -1, idxValorFinal = -1;
-    // Armazenamos os cabeçalhos exibidos para uso na impressão (global)
+    // Armazena os cabeçalhos exibidos para uso na impressão
     let globalDisplayHeaders = [];
     
-    // Atualiza o total exibido na página
+    // Atualiza o total exibido na tela
     function updateTotalSum() {
       let total = 0;
       document.querySelectorAll("#sheet-table tbody tr").forEach(row => {
@@ -211,7 +196,7 @@
         "Total Valor Pago: " + new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(total);
     }
     
-    // Atualiza os dropdowns dos filtros com base nas linhas visíveis (filtragem em cascata)
+    // Atualiza os dropdowns dos filtros com base nas linhas visíveis
     function updateFilterDropdowns() {
       const visibleRows = Array.from(document.querySelectorAll("#sheet-table tbody tr"))
                                .filter(row => row.style.display !== "none");
@@ -301,40 +286,33 @@
       document.getElementById("filter-pago").addEventListener("change", applyFilter);
     }
     
-    // Atualiza o cabeçalho, corpo e rodapé de impressão com os filtros usados e data/hora
+    // Atualiza o cabeçalho e rodapé de impressão e agrupa os registros por mês (quando o ano é específico)
     function updatePrintInfo() {
       const selYear = document.getElementById("filter-year").value;
       const selMonth = document.getElementById("filter-month").value;
       const totalText = document.getElementById("total-container").textContent;
-      
-      // Cabeçalho de impressão com título e informações gerais
       let headerHTML = "<h2>Relatório de Despesas - Babylon Delicatessen</h2>";
       headerHTML += "<p>Ano escolhido: " + (selYear === "all" ? "Todos" : selYear) + " - " + totalText + "</p>";
       document.getElementById("print-header").innerHTML = headerHTML;
       
-      // Obtenha as linhas visíveis da tabela original
       const rows = Array.from(document.querySelectorAll("#sheet-table tbody tr"))
                         .filter(row => row.style.display !== "none");
       
-      // Se o ano estiver definido (não "Todos") e houver mais de um mês entre os registros, agrupe-os; caso contrário, exiba todos juntos
       let printBodyHTML = "";
-      // Determina quais colunas serão impressas (fixamente: Data, Credor, Descrição e Valor)
+      // Para impressão, exibiremos apenas as colunas permitidas
       const allowedPrint = ["Data", "Credor", "Descrição", "Valor"];
-      // Utilize a variável global que guarda os cabeçalhos exibidos
+      // Obtenha os índices correspondentes a esses cabeçalhos no array global
       const allowedIndices = allowedPrint.map(col => globalDisplayHeaders.findIndex(h => h === col));
       
       if (selYear !== "all") {
-        // Agrupar por mês
+        // Agrupa por mês
         let groups = {};
         rows.forEach(row => {
-          let cell = row.children[idxDataFinal];
-          if (cell) {
-            let parts = cell.textContent.trim().split("/");
-            if (parts.length === 3) {
-              let month = parts[1];
-              if (!groups[month]) groups[month] = [];
-              groups[month].push(row);
-            }
+          let parts = row.children[idxDataFinal].textContent.trim().split("/");
+          if (parts.length === 3) {
+            let month = parts[1];
+            if (!groups[month]) groups[month] = [];
+            groups[month].push(row);
           }
         });
         const monthKeys = Object.keys(groups).sort((a, b) => parseInt(a) - parseInt(b));
@@ -364,7 +342,7 @@
           printBodyHTML += "</tbody></table><br/>";
         });
       } else {
-        // Se "Todos" os anos foram selecionados, exiba todos os registros em uma única tabela
+        // Exibe todos os registros juntos
         let subtotal = 0;
         rows.forEach(row => { subtotal += parseFloat(row.getAttribute("data-valor-pago") || "0"); });
         const formattedSubtotal = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(subtotal);
@@ -395,7 +373,7 @@
     
     window.addEventListener("beforeprint", updatePrintInfo);
     
-    // Busca e processamento dos dados do Google Sheets
+    // Busca e processa os dados do Google Sheets
     fetch(publishedHtmlUrl)
       .then(response => response.text())
       .then(htmlText => {
@@ -413,7 +391,7 @@
           const first = headerCells[0].textContent.trim();
           if (first === "" || !isNaN(first)) { useNumbering = true; headerCells = headerCells.slice(1); }
         }
-        // Define as colunas a excluir (em minúsculas)
+        // Colunas a excluir (em minúsculas)
         const columnsToExclude = [
           "carimbo de data/hora",
           "[form publisher] edit url",
@@ -452,8 +430,7 @@
           let lower = h.toLowerCase();
           return headerMapping[lower] || h;
         });
-        // Armazena os cabeçalhos exibidos para uso na impressão
-        window.globalDisplayHeaders = displayHeaders;
+        globalDisplayHeaders = displayHeaders;  // Armazena para uso na impressão
         
         // Cria o cabeçalho da tabela exibida
         const thead = document.querySelector("#sheet-table thead");
@@ -461,7 +438,7 @@
         displayHeaders.forEach(h => {
           const th = document.createElement("th");
           th.textContent = h;
-          // Adiciona a classe hide-print para as colunas que não devem ser impressas
+          // Adiciona a classe hide-print para as colunas que não serão impressas
           if (h.toLowerCase().includes("comprovante") || h.toLowerCase().includes("recibo"))
             th.classList.add("hide-print");
           headerTr.appendChild(th);
@@ -476,15 +453,12 @@
         idxPagoFinal = displayHeaders.findIndex(h => h === "Pago Por");
         idxValorFinal = displayHeaders.findIndex(h => h === "Valor");
         
-        // Processa as linhas de dados (a partir da linha 3 – índice 2)
+        // Processa as linhas de dados (linha 3 em diante – índice 2)
         const tbody = document.querySelector("#sheet-table tbody");
         for (let i = 2; i < rows.length; i++) {
           let cells = Array.from(rows[i].querySelectorAll("td"));
           if (cells.length === 0) continue;
-          if (useNumbering && cells.length > headerCells.length) {
-            const first = cells[0].textContent.trim();
-            if (first === "" || !isNaN(first)) { cells = cells.slice(1); }
-          }
+          if (useNumbering) { cells = cells.slice(1); }  // Remoção incondicional da primeira célula
           let filteredCells = keptIndices.map(index => cells[index]);
           if (filteredCells.length !== headers.length) continue;
           // Ignora a linha se "Data da Despesa" estiver vazia
@@ -538,7 +512,6 @@
             }
             else {
               td.textContent = cell.textContent.trim();
-              // Para impressão, exibe apenas as colunas permitidas: Data, Credor, Descrição e Valor
               const allowedPrint = ["Data", "Credor", "Descrição", "Valor"];
               if (!allowedPrint.includes(displayHeaders[j])) { td.classList.add("hide-print"); }
             }
@@ -548,7 +521,7 @@
           tbody.appendChild(tr);
         }
         
-        // Popula os dropdowns (todos os dados)
+        // Popula os dropdowns com todos os dados
         function populateAllDropdowns() {
           const filterYear = document.getElementById("filter-year");
           Array.from(uniqueYears).sort((a, b) => parseInt(a) - parseInt(b)).forEach(year => {
