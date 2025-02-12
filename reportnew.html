@@ -12,7 +12,7 @@
     /* Basic Reset */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Arial', sans-serif;
+      font-family: 'Orbitron', sans-serif;
       background-color: black;
       color: white;
       min-height: 100vh;
@@ -50,7 +50,7 @@
       border-radius: 4px;
       margin-right: 20px;
     }
-    /* Botão de Impressão – exibido apenas em tela (não na impressão) */
+    /* Botão de Impressão – exibe o emoji com tooltip para usar CTRL+P */
     #print-btn {
       font-size: 20px;
       background: none;
@@ -72,7 +72,7 @@
       margin: 20px auto;
       overflow-x: auto;
     }
-    /* Tabela com cores padroes e fundo preto */
+    /* Tabela com cores padrão e fundo preto */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -104,19 +104,11 @@
       margin-bottom: 20px;
       color: white;
     }
-    /* Estilo para impressão – elementos com classe print-only serão exibidos somente na impressão */
-    .print-only { display: none; }
-    /* Elementos marcados como no-print serão ocultados na impressão */
-    .no-print { }
     
+    /* Estilos para impressão */
     @media print {
-      /* Oculta os filtros, o botão de impressão e o total que são exibidos em tela */
+      /* Oculta os filtros, o botão de impressão e o total exibidos em tela */
       #filter-container, #total-container, .no-print { display: none !important; }
-      /* Exibe os elementos destinados apenas à impressão */
-      .print-only { display: block !important; }
-      /* Oculta as colunas com a classe no-print (para as colunas Comprovante pgto e Recibo/NF) */
-      .no-print { display: none !important; }
-      /* Ajusta margens e outros estilos se necessário para a impressão */
       table { border: 1px solid #000; }
     }
     
@@ -125,14 +117,6 @@
       .hide-web {
         display: none;
       }
-    }
-    
-    /* Estilos para o cabeçalho e rodapé de impressão */
-    #print-header, #print-footer {
-      text-align: center;
-      color: black;
-      margin: 10px 0;
-      font-size: 14px;
     }
   </style>
 </head>
@@ -152,7 +136,7 @@
         <option value="all">Todos</option>
       </select>
       <!-- Botão de Impressão -->
-      <button id="print-btn" onclick="window.print()" title="Imprimir relatório">🖨️</button>
+      <button id="print-btn" title="Pressione CTRL+P para imprimir">🖨️</button>
     </div>
     <!-- Linha 2: Filtros para Categoria, Forma de Pgto, Credor e Pago Por -->
     <div id="filter-other">
@@ -180,9 +164,6 @@
     </div>
   </div>
   
-  <!-- Elementos destinados apenas à impressão -->
-  <div id="print-header" class="print-only"></div>
-  
   <!-- Campo para exibir o total de "Valor" em tela (não será impresso) -->
   <div id="total-container" class="no-print">
     Total Valor Pago: R$ 0,00
@@ -195,9 +176,6 @@
       <tbody></tbody>
     </table>
   </div>
-  
-  <!-- Rodapé de impressão -->
-  <div id="print-footer" class="print-only"></div>
   
   <footer class="no-print">
     <p>© 2025 Babylon Delicatessen. Todos os direitos reservados.</p>
@@ -397,29 +375,6 @@
       document.getElementById("filter-pago").addEventListener("change", applyFilter);
       document.getElementById("filter-search").addEventListener("input", applyFilter);
     }
-    
-    // Atualiza o cabeçalho e o rodapé de impressão com os filtros atuais e data/hora
-    function updatePrintInfo() {
-      const year = document.getElementById("filter-year").value;
-      const month = document.getElementById("filter-month").value;
-      const categoria = document.getElementById("filter-categoria").value;
-      const forma = document.getElementById("filter-forma").value;
-      const credor = document.getElementById("filter-credor").value;
-      const pago = document.getElementById("filter-pago").value;
-      const printHeader = document.getElementById("print-header");
-      printHeader.innerHTML = "<strong>Filtros utilizados:</strong> " +
-        "Ano: " + (year === "all" ? "Todos" : year) + ", " +
-        "Mês: " + (month === "all" ? "Todos" : month) + ", " +
-        "Categoria: " + (categoria === "all" ? "Todos" : categoria) + ", " +
-        "Forma de Pgto: " + (forma === "all" ? "Todos" : forma) + ", " +
-        "Credor: " + (credor === "all" ? "Todos" : credor) + ", " +
-        "Pago Por: " + (pago === "all" ? "Todos" : pago);
-      
-      const printFooter = document.getElementById("print-footer");
-      const now = new Date();
-      printFooter.innerHTML = "Impressão realizada em: " + now.toLocaleString("pt-BR");
-    }
-    window.addEventListener("beforeprint", updatePrintInfo);
     
     fetch(publishedHtmlUrl)
       .then(response => response.text())
