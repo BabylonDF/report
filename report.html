@@ -198,8 +198,8 @@
       </div>
     </div>
     
-    <!-- Total Valor Pago (acima da tabela) -->
-    <div id="total-container" class="no-print">Total Valor Pago: R$ 0,00</div>
+    <!-- Valor Total (acima da tabela) -->
+    <div id="total-container" class="no-print">Valor Total: R$ 0,00</div>
     
     <!-- Resumo para impressão -->
     <div id="print-summary" class="print-only"></div>
@@ -256,7 +256,7 @@
         }
       });
       const formattedTotal = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(total);
-      document.getElementById("total-container").textContent = "Total Valor Pago: " + formattedTotal;
+      document.getElementById("total-container").textContent = "Valor Total: " + formattedTotal;
     }
     
     function updateFilterDropdowns() {
