@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Babylon Delicatessen - Despesas</title>
   
-  <!-- Fonte Orbitron para o efeito futurista -->
+  <!-- Fonte Orbitron para efeito futurista -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
   
   <style>
@@ -22,14 +22,20 @@
       min-height: 100vh;
       overflow-x: hidden;
     }
+    /* Container responsivo para a tabela */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      padding: 20px;
+    }
     /* Tabela com estilo neon azul */
     table {
-      width: 90%;
-      margin: 120px auto 20px;
+      width: 100%;
       border-collapse: collapse;
       background: rgba(0, 0, 0, 0.8);
       border: 4px solid #00eaff;
       border-radius: 8px;
+      min-width: 600px; /* Garante largura mínima para rolagem se necessário */
     }
     thead th {
       padding: 10px;
@@ -67,15 +73,17 @@
 <body>
   <h1>Relatório de Despesas - Babylon Delicatessen</h1>
   
-  <!-- Tabela que receberá os dados do Google Sheets -->
-  <table id="sheet-table">
-    <thead>
-      <!-- Cabeçalho será inserido via JavaScript -->
-    </thead>
-    <tbody>
-      <!-- Dados serão inseridos via JavaScript -->
-    </tbody>
-  </table>
+  <!-- Div que permite a rolagem horizontal caso a tabela ultrapasse a largura da tela -->
+  <div class="table-container">
+    <table id="sheet-table">
+      <thead>
+        <!-- O cabeçalho será inserido via JavaScript -->
+      </thead>
+      <tbody>
+        <!-- Os dados serão inseridos via JavaScript -->
+      </tbody>
+    </table>
+  </div>
   
   <footer>
     <p>© 2025 Babylon Delicatessen. Todos os direitos reservados.</p>
@@ -103,13 +111,11 @@
           return;
         }
         
-        // A primeira linha é ignorada; a segunda linha (índice 1) é o cabeçalho
+        // Desconsidera a primeira linha (índice 0)
+        // A segunda linha (índice 1) é o cabeçalho, mas ignoramos também a primeira coluna
         const headerRow = rows[1];
-        const headerCells = headerRow.querySelectorAll("td, th");
-        const headers = [];
-        headerCells.forEach(cell => {
-          headers.push(cell.textContent.trim());
-        });
+        const headerCells = Array.from(headerRow.querySelectorAll("td, th")).slice(1);
+        const headers = headerCells.map(cell => cell.textContent.trim());
         
         // Insere o cabeçalho na tabela da página
         const thead = document.querySelector("#sheet-table thead");
@@ -121,28 +127,29 @@
         });
         thead.appendChild(headerTr);
         
-        // Identifica os índices das colunas que deverão ser exibidas com emoji (links para download)
+        // Define os índices para as colunas dos anexos (relativos ao novo array de cabeçalhos)
         let idxComprovante = headers.findIndex(text => text.toLowerCase().includes("anexar comprovante de pagamento"));
         let idxRecibo = headers.findIndex(text => text.toLowerCase().includes("anexar recibo ou nota fiscal"));
         
         // Processa os dados a partir da terceira linha (índice 2)
-        const tbody = document.querySelector("#sheet-table tbody");
         for (let i = 2; i < rows.length; i++) {
           const cells = rows[i].querySelectorAll("td");
-          // Pula linhas vazias
           if (!cells.length) continue;
+          
+          // Desconsidera a primeira coluna (índice 0)
+          const dataCells = Array.from(cells).slice(1);
+          
+          // Cria a linha de dados
           const tr = document.createElement("tr");
-          for (let j = 0; j < headers.length; j++) {
+          headers.forEach((header, index) => {
             const td = document.createElement("td");
-            if (j < cells.length) {
-              // Se a coluna for uma das de anexos, substitui pelo emoji com link
-              if (j === idxComprovante || j === idxRecibo) {
-                // Procura uma tag <a> dentro da célula
-                const aTag = cells[j].querySelector("a");
+            if (index < dataCells.length) {
+              // Para as colunas de anexos, exibe o emoji com link para download
+              if (index === idxComprovante || index === idxRecibo) {
+                const aTag = dataCells[index].querySelector("a");
                 if (aTag && aTag.href) {
-                  const link = aTag.href;
                   const a = document.createElement("a");
-                  a.href = link;
+                  a.href = aTag.href;
                   a.target = "_blank";
                   a.title = "Baixar arquivo";
                   a.textContent = "⬇️";
@@ -151,14 +158,14 @@
                   td.textContent = "";
                 }
               } else {
-                td.textContent = cells[j].textContent.trim();
+                td.textContent = dataCells[index].textContent.trim();
               }
             } else {
               td.textContent = "";
             }
             tr.appendChild(td);
-          }
-          tbody.appendChild(tr);
+          });
+          document.querySelector("#sheet-table tbody").appendChild(tr);
         }
       })
       .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
