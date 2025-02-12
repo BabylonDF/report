@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard de Despesas - Babylon Delicatessen</title>
+  <title>- Dashboard de Despesas - Babylon Delicatessen</title>
   <style>
     /* Estilo com tema neon azul */
     body {
@@ -113,8 +113,8 @@
     // URL da página publicada da planilha (HTML) – observe que usa "pubhtml" e o gid da aba "Respostas"
     const publishedHtmlUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true';
     
-    let allData = [];   // Array de objetos com os dados (linhas a partir da 3ª)
-    let headers = [];   // Cabeçalhos extraídos da 2ª linha da planilha
+    let allData = [];   // Array de objetos com os dados (linhas de dados)
+    let headers = [];   // Cabeçalhos extraídos da 2ª linha ou do <thead>
     
     // Função para extrair ano e mês de uma data no formato dd/mm/aaaa
     function getYearMonth(dateStr) {
@@ -127,7 +127,7 @@
       return { year, month };
     }
     
-    // Atualiza os dropdowns com os anos e meses encontrados no campo "Data da Despesa"
+    // Atualiza os dropdowns de Ano e Mês com os valores encontrados no campo "Data da Despesa"
     function updateFilters(data) {
       const yearSet = new Set();
       const monthSet = new Set();
@@ -216,38 +216,58 @@
     document.getElementById('yearFilter').addEventListener('change', applyFilters);
     document.getElementById('monthFilter').addEventListener('change', applyFilters);
     
-    // Busca os dados da planilha publicada via fetch e processa a tabela
+    // Função para buscar e processar os dados da planilha publicada
     function init() {
       fetch(publishedHtmlUrl)
         .then(response => response.text())
         .then(htmlText => {
           const parser = new DOMParser();
           const doc = parser.parseFromString(htmlText, "text/html");
-          // A tabela da planilha normalmente possui a classe "waffle"
+          // Procura a tabela com a classe "waffle"
           const sourceTable = doc.querySelector("table.waffle");
           if (!sourceTable) {
             console.error("Tabela não encontrada na página publicada.");
             return;
           }
-          const rows = sourceTable.querySelectorAll("tr");
-          if (rows.length < 2) {
-            console.error("Linhas insuficientes na tabela.");
-            return;
+          
+          // Se a tabela possuir <thead> e <tbody>, use-os; caso contrário, use todas as linhas
+          let headerRow;
+          const thead = sourceTable.querySelector("thead");
+          if (thead) {
+            headerRow = thead.querySelector("tr");
+          } else {
+            // Se não houver thead, considere a segunda linha (índice 1) como cabeçalho
+            const rows = sourceTable.querySelectorAll("tr");
+            if (rows.length < 2) {
+              console.error("Linhas insuficientes na tabela.");
+              return;
+            }
+            headerRow = rows[1];
           }
-          // A segunda linha (índice 1) será o cabeçalho
-          const headerCells = rows[1].querySelectorAll("td, th");
+          
+          // Extrai os cabeçalhos
           headers = [];
-          headerCells.forEach(cell => {
+          headerRow.querySelectorAll("td, th").forEach(cell => {
             headers.push(cell.textContent.trim());
           });
-          // Processa os dados a partir da terceira linha (índice 2)
+          
+          // Para os dados, se houver <tbody>, use as suas linhas; caso contrário, use as linhas após o cabeçalho
+          let dataRows = [];
+          const tbody = sourceTable.querySelector("tbody");
+          if (tbody) {
+            dataRows = tbody.querySelectorAll("tr");
+          } else {
+            const rows = sourceTable.querySelectorAll("tr");
+            dataRows = Array.from(rows).slice(2);
+          }
+          
           allData = [];
-          for (let i = 2; i < rows.length; i++) {
-            const cells = rows[i].querySelectorAll("td");
-            if (cells.length < headers.length) continue;
+          dataRows.forEach(row => {
+            const cells = row.querySelectorAll("td");
+            if (cells.length < headers.length) return;
             let rowObj = {};
             cells.forEach((cell, index) => {
-              // Se houver link, pega o atributo href; caso contrário, o texto
+              // Se houver um link, utiliza o atributo href; caso contrário, o texto da célula
               const link = cell.querySelector("a");
               if (link) {
                 rowObj[headers[index]] = link.getAttribute("href");
@@ -256,8 +276,9 @@
               }
             });
             allData.push(rowObj);
-          }
-          // Atualiza os dropdowns, a tabela e o resumo
+          });
+          
+          // Atualiza os filtros, a tabela e o resumo
           updateFilters(allData);
           renderTable(allData);
           renderSummary(allData);
