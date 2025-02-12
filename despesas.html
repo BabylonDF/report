@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>-Babylon Delicatessen - Despesas</title>
+  <title>Babylon Delicatessen - Despesas</title>
   
   <!-- Importa a fonte Orbitron para efeito futurista -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
@@ -165,14 +165,14 @@
             headerCells = headerCells.slice(1);
           }
         }
-        
         // Define as colunas a excluir (em minúsculas para comparação)
         const columnsToExclude = [
           "carimbo de data/hora",
           "[form publisher] edit url",
           "[form publisher] doc url",
           "[form publisher] increment",
-          "[form publisher] pdf url"
+          "[form publisher] pdf url",
+          "nº do documento"
         ];
         
         // Cria o array de cabeçalhos e registra os índices que serão mantidos
@@ -194,7 +194,7 @@
           }
         });
         
-        // Calcula os índices das colunas de "Data da Despesa" e "Valor Pago" com base nos textos originais
+        // Calcula os índices das colunas de "Data da Despesa" e "Valor Pago"
         const idxDataDespesa = headers.findIndex(text => text.toLowerCase().includes("data da despesa"));
         const idxValorPago = headers.findIndex(text => text.toLowerCase().includes("valor pago"));
         
@@ -203,7 +203,7 @@
           "data da despesa": "Data",
           "selecione a categoria": "Categoria",
           "escolha a opção de pagamento": "Forma de Pgto",
-          "nº do documento": "Nº do documento",
+          "nº do documento": "Nº do documento", // Não será exibida, pois foi excluída
           "nome do credor": "Credor",
           "descrição": "Descrição",
           "valor pago": "Valor",
@@ -268,6 +268,7 @@
           let valorPagoNum = 0;
           filteredCells.forEach((cell, j) => {
             const td = document.createElement("td");
+            // Se a coluna for de anexo (comprovante ou recibo), insere o emoji se houver link
             if (displayHeaders[j].toLowerCase().includes("comprovante") || displayHeaders[j].toLowerCase().includes("recibo")) {
               const aTag = cell.querySelector("a");
               if (aTag && aTag.href) {
@@ -281,6 +282,7 @@
                 td.textContent = "";
               }
             }
+            // Se for a coluna "Valor Pago", formata o número como moeda (R$)
             else if (displayHeaders[j].toLowerCase().includes("valor")) {
               let raw = cell.textContent.trim();
               raw = raw.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
