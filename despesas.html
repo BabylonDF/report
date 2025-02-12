@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>-Babylon Delicatessen - Despesas</title>
+  <title>Babylon Delicatessen - Despesas</title>
   
   <!-- Importa a fonte Orbitron para efeito futurista -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
@@ -165,12 +165,33 @@
             headerCells = headerCells.slice(1);
           }
         }
-        // Mapeia os cabeçalhos e remove a coluna "Carimbo de data/hora"
-        let headers = headerCells.map(cell => cell.textContent.trim());
-        const indexCarimbo = headers.findIndex(header => header.toLowerCase().includes("carimbo de data/hora"));
-        if (indexCarimbo !== -1) {
-          headers.splice(indexCarimbo, 1);
-        }
+        // Define os nomes de coluna que devem ser removidos (em minúsculas para comparação)
+        const columnsToExclude = [
+          "carimbo de data/hora",
+          "[form publisher] edit url",
+          "[form publisher] doc url",
+          "[form publisher] increment",
+          "[form publisher] pdf url"
+        ];
+        
+        // Cria novo array de cabeçalhos e registra os índices que serão mantidos
+        let keptIndices = [];
+        let headers = [];
+        headerCells.forEach((cell, i) => {
+          const headerText = cell.textContent.trim();
+          const lower = headerText.toLowerCase();
+          let exclude = false;
+          for (const col of columnsToExclude) {
+            if (lower.includes(col)) {
+              exclude = true;
+              break;
+            }
+          }
+          if (!exclude) {
+            keptIndices.push(i);
+            headers.push(headerText);
+          }
+        });
         
         // Cria o cabeçalho na tabela exibida
         const thead = document.querySelector("#sheet-table thead");
@@ -182,7 +203,7 @@
         });
         thead.appendChild(headerTr);
         
-        // Determina os índices das colunas "Data da Despesa" e "Valor Pago"
+        // Determina os índices (no array filtrado de cabeçalhos) das colunas "Data da Despesa" e "Valor Pago"
         const idxDataDespesa = headers.findIndex(text => text.toLowerCase().includes("data da despesa"));
         const idxValorPago = headers.findIndex(text => text.toLowerCase().includes("valor pago"));
         
@@ -195,6 +216,7 @@
           let cells = Array.from(rows[i].querySelectorAll("td"));
           if (cells.length === 0) continue;
           
+          // Se houver coluna de numeração, remove a primeira célula se for apenas numérica ou vazia
           if (useNumbering && cells.length > headerCells.length) {
             const firstCellText = cells[0].textContent.trim();
             if (firstCellText === "" || !isNaN(firstCellText)) {
@@ -202,23 +224,19 @@
             }
           }
           
-          // Remove a célula referente à coluna "Carimbo de data/hora", se existir
-          if (indexCarimbo !== -1 && cells.length > indexCarimbo) {
-            cells.splice(indexCarimbo, 1);
-          }
+          // Filtra as células para manter apenas aquelas cujos índices estão em keptIndices
+          let filteredCells = keptIndices.map(index => cells[index]);
+          if (filteredCells.length !== headers.length) continue;
           
-          // Se a quantidade de células não bater com os cabeçalhos, pula a linha
-          if (cells.length !== headers.length) continue;
-          
-          // Se a coluna "Data da Despesa" existir e estiver vazia, pula a linha
+          // Se a coluna "Data da Despesa" existir e estiver vazia, ignora a linha
           if (idxDataDespesa !== -1) {
-            let dataDespesa = cells[idxDataDespesa].textContent.trim();
+            let dataDespesa = filteredCells[idxDataDespesa].textContent.trim();
             if (dataDespesa === "") continue;
           }
           
           // Se houver coluna "Data da Despesa", extrai o mês/ano e armazena
           if (idxDataDespesa !== -1) {
-            let dateText = cells[idxDataDespesa].textContent.trim();
+            let dateText = filteredCells[idxDataDespesa].textContent.trim();
             let parts = dateText.split("/");
             if (parts.length === 3) {
               uniqueDates.add(parts[1] + "/" + parts[2]);
@@ -228,9 +246,9 @@
           // Cria a linha da tabela e prepara para armazenar o valor pago
           const tr = document.createElement("tr");
           let valorPagoNum = 0;
-          
-          cells.forEach((cell, j) => {
+          filteredCells.forEach((cell, j) => {
             const td = document.createElement("td");
+            // Se a coluna for de anexo (comprovante ou recibo), insere o emoji se houver link
             if (headers[j].toLowerCase().includes("comprovante") || headers[j].toLowerCase().includes("recibo")) {
               const aTag = cell.querySelector("a");
               if (aTag && aTag.href) {
@@ -244,6 +262,7 @@
                 td.textContent = "";
               }
             }
+            // Se for a coluna "Valor Pago", formata o número como moeda (R$)
             else if (headers[j].toLowerCase().includes("valor pago")) {
               let raw = cell.textContent.trim();
               raw = raw.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
@@ -258,6 +277,7 @@
             }
             tr.appendChild(td);
           });
+          // Armazena o valor pago numérico na linha (para cálculo do total)
           tr.setAttribute("data-valor-pago", valorPagoNum);
           tbody.appendChild(tr);
         }
