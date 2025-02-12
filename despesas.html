@@ -24,8 +24,12 @@
       margin: 20px auto;
       text-align: center;
     }
-    /* Agrupamento em duas linhas para os filtros */
-    #filter-date, #filter-other {
+    /* Linha 1: Filtros de Data (Ano e Mês) – Ano vem antes do Mês */
+    #filter-date {
+      margin-bottom: 10px;
+    }
+    /* Linha 2: Filtros para Categoria, Forma de Pgto, Credor e Pago Por */
+    #filter-other {
       margin-bottom: 10px;
     }
     #filter-container label {
@@ -104,12 +108,12 @@
   <div id="filter-container">
     <!-- Linha 1: Filtros de Data -->
     <div id="filter-date">
-      <label for="filter-month">Mês:</label>
-      <select id="filter-month">
-        <option value="all">Todos</option>
-      </select>
       <label for="filter-year">Ano:</label>
       <select id="filter-year">
+        <option value="all">Todos</option>
+      </select>
+      <label for="filter-month">Mês:</label>
+      <select id="filter-month">
         <option value="all">Todos</option>
       </select>
     </div>
@@ -134,7 +138,7 @@
     </div>
   </div>
   
-  <!-- Campo para exibir o total de "Valor Pago" -->
+  <!-- Campo para exibir o total de "Valor" -->
   <div id="total-container">
     Total Valor Pago: R$ 0,00
   </div>
@@ -155,7 +159,7 @@
     // URL da página publicada do Google Sheets
     const publishedHtmlUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true";
     
-    // Declaração de conjuntos para armazenar valores únicos de cada filtro
+    // Declaração de conjuntos para armazenar os valores únicos (a serem atualizados dinamicamente)
     const uniqueMonths = new Set();
     const uniqueYears = new Set();
     const uniqueCategories = new Set();
@@ -170,7 +174,7 @@
         idxCredorFinal = -1,
         idxPagoFinal = -1;
     
-    // Função para atualizar o total de "Valor" com base nas linhas visíveis
+    // Atualiza o total exibido (soma dos valores) considerando as linhas visíveis
     function updateTotalSum() {
       let total = 0;
       const tbodyRows = document.querySelectorAll("#sheet-table tbody tr");
@@ -184,10 +188,88 @@
       document.getElementById("total-container").textContent = "Total Valor Pago: " + formattedTotal;
     }
     
-    // Função para aplicar os filtros combinados
+    // Atualiza as opções dos dropdowns de filtro com base nas linhas visíveis
+    function updateFilterDropdowns() {
+      const visibleRows = Array.from(document.querySelectorAll("#sheet-table tbody tr"))
+                                .filter(row => row.style.display !== "none");
+      
+      const yearSet = new Set();
+      const monthSet = new Set();
+      const catSet = new Set();
+      const formaSet = new Set();
+      const credorSet = new Set();
+      const pagoSet = new Set();
+      
+      visibleRows.forEach(row => {
+        if (idxDataFinal !== -1) {
+          let dateText = row.children[idxDataFinal].textContent.trim();
+          let parts = dateText.split("/");
+          if (parts.length === 3) {
+            yearSet.add(parts[2]);
+            monthSet.add(parts[1]);
+          }
+        }
+        if (idxCategoriaFinal !== -1) {
+          let catText = row.children[idxCategoriaFinal].textContent.trim();
+          catSet.add(catText);
+        }
+        if (idxFormaFinal !== -1) {
+          let formaText = row.children[idxFormaFinal].textContent.trim();
+          formaSet.add(formaText);
+        }
+        if (idxCredorFinal !== -1) {
+          let credorText = row.children[idxCredorFinal].textContent.trim();
+          credorSet.add(credorText);
+        }
+        if (idxPagoFinal !== -1) {
+          let pagoText = row.children[idxPagoFinal].textContent.trim();
+          pagoSet.add(pagoText);
+        }
+      });
+      
+      updateDropdown("filter-year", yearSet);
+      updateDropdown("filter-month", monthSet);
+      updateDropdown("filter-categoria", catSet);
+      updateDropdown("filter-forma", formaSet);
+      updateDropdown("filter-credor", credorSet);
+      updateDropdown("filter-pago", pagoSet);
+    }
+    
+    // Função auxiliar para atualizar as opções de um dropdown
+    function updateDropdown(id, setValues) {
+      const select = document.getElementById(id);
+      const currentValue = select.value;
+      select.innerHTML = "";
+      const defaultOption = document.createElement("option");
+      defaultOption.value = "all";
+      defaultOption.textContent = "Todos";
+      select.appendChild(defaultOption);
+      
+      let arr = Array.from(setValues);
+      if (id === "filter-year" || id === "filter-month") {
+        arr.sort((a, b) => parseInt(a) - parseInt(b));
+      } else {
+        arr.sort();
+      }
+      arr.forEach(val => {
+        const option = document.createElement("option");
+        option.value = val;
+        option.textContent = val;
+        select.appendChild(option);
+      });
+      
+      // Restaura o valor selecionado, se ainda disponível
+      if (arr.includes(currentValue)) {
+        select.value = currentValue;
+      } else {
+        select.value = "all";
+      }
+    }
+    
+    // Aplica os filtros combinados com base nas seleções atuais dos dropdowns
     function applyFilter() {
-      const selectedMonth = document.getElementById("filter-month").value;
       const selectedYear = document.getElementById("filter-year").value;
+      const selectedMonth = document.getElementById("filter-month").value;
       const selectedCategoria = document.getElementById("filter-categoria").value;
       const selectedForma = document.getElementById("filter-forma").value;
       const selectedCredor = document.getElementById("filter-credor").value;
@@ -196,7 +278,7 @@
       const tbodyRows = document.querySelectorAll("#sheet-table tbody tr");
       tbodyRows.forEach(function(row) {
         let show = true;
-        // Filtragem por Data (Mês e Ano)
+        // Filtragem por Data (Ano e Mês)
         if (idxDataFinal !== -1) {
           let cell = row.children[idxDataFinal];
           if (cell) {
@@ -205,8 +287,8 @@
             if (parts.length === 3) {
               let rowMonth = parts[1];
               let rowYear = parts[2];
-              if (selectedMonth !== "all" && rowMonth !== selectedMonth) show = false;
               if (selectedYear !== "all" && rowYear !== selectedYear) show = false;
+              if (selectedMonth !== "all" && rowMonth !== selectedMonth) show = false;
             }
           }
         }
@@ -244,13 +326,15 @@
         }
         row.style.display = show ? "" : "none";
       });
+      
       updateTotalSum();
+      updateFilterDropdowns();
     }
     
-    // Adiciona listeners para disparar a filtragem quando qualquer dropdown for alterado
+    // Adiciona os listeners para disparar a filtragem quando qualquer dropdown for alterado
     function addFilterListeners() {
-      document.getElementById("filter-month").addEventListener("change", applyFilter);
       document.getElementById("filter-year").addEventListener("change", applyFilter);
+      document.getElementById("filter-month").addEventListener("change", applyFilter);
       document.getElementById("filter-categoria").addEventListener("change", applyFilter);
       document.getElementById("filter-forma").addEventListener("change", applyFilter);
       document.getElementById("filter-credor").addEventListener("change", applyFilter);
@@ -283,7 +367,7 @@
             headerCells = headerCells.slice(1);
           }
         }
-        // Definindo as colunas a excluir (em minúsculas)
+        // Define as colunas a excluir (em minúsculas)
         const columnsToExclude = [
           "carimbo de data/hora",
           "[form publisher] edit url",
@@ -292,7 +376,6 @@
           "[form publisher] pdf url",
           "nº do documento"
         ];
-        // Cria array de cabeçalhos e registra os índices a manter
         let keptIndices = [];
         let headers = [];
         headerCells.forEach((cell, i) => {
@@ -324,14 +407,12 @@
           "anexar comprovante de pagamento": "Comprovante pgto",
           "anexar recibo ou nota fiscal": "Recibo/NF"
         };
-        
-        // Aplica o mapeamento para exibição dos cabeçalhos
         let displayHeaders = headers.map(header => {
           const lower = header.toLowerCase();
           return headerMapping[lower] || header;
         });
         
-        // Cria o cabeçalho na tabela exibida
+        // Cria o cabeçalho da tabela exibida
         const thead = document.querySelector("#sheet-table thead");
         const headerTr = document.createElement("tr");
         displayHeaders.forEach(header => {
@@ -341,7 +422,7 @@
         });
         thead.appendChild(headerTr);
         
-        // Determina os índices finais (na tabela exibida) para os filtros:
+        // Determina os índices finais (na tabela exibida) para os filtros
         idxDataFinal = displayHeaders.findIndex(h => h === "Data");
         idxCategoriaFinal = displayHeaders.findIndex(h => h === "Categoria");
         idxFormaFinal = displayHeaders.findIndex(h => h === "Forma de Pgto");
@@ -359,7 +440,6 @@
               cells = cells.slice(1);
             }
           }
-          // Filtra células de acordo com os índices mantidos
           let filteredCells = keptIndices.map(index => cells[index]);
           if (filteredCells.length !== headers.length) continue;
           
@@ -367,7 +447,6 @@
           if (idxDataDespesaOrig !== -1) {
             let dataDespesa = filteredCells[idxDataDespesaOrig].textContent.trim();
             if (dataDespesa === "") continue;
-            // Extração de mês e ano para os filtros de data
             let parts = dataDespesa.split("/");
             if (parts.length === 3) {
               uniqueMonths.add(parts[1]);
@@ -398,7 +477,6 @@
           let valorPagoNum = 0;
           filteredCells.forEach((cell, j) => {
             const td = document.createElement("td");
-            // Se for coluna de anexo (comprovante ou recibo), exibe o emoji se houver link
             if (displayHeaders[j].toLowerCase().includes("comprovante") || displayHeaders[j].toLowerCase().includes("recibo")) {
               const aTag = cell.querySelector("a");
               if (aTag && aTag.href) {
@@ -412,7 +490,6 @@
                 td.textContent = "";
               }
             }
-            // Se for a coluna "Valor", formata para moeda (R$)
             else if (displayHeaders[j].toLowerCase().includes("valor")) {
               let raw = cell.textContent.trim();
               raw = raw.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
@@ -431,68 +508,71 @@
           tbody.appendChild(tr);
         }
         
-        // --- Popula os dropdowns de filtro com os valores únicos ---
-        // Para Mês
-        const filterMonth = document.getElementById("filter-month");
-        let uniqueMonthsArray = Array.from(uniqueMonths);
-        uniqueMonthsArray.sort((a, b) => parseInt(a) - parseInt(b));
-        uniqueMonthsArray.forEach(function(month) {
-          let option = document.createElement("option");
-          option.value = month;
-          option.textContent = month;
-          filterMonth.appendChild(option);
-        });
-        // Para Ano
-        const filterYear = document.getElementById("filter-year");
-        let uniqueYearsArray = Array.from(uniqueYears);
-        uniqueYearsArray.sort((a, b) => parseInt(a) - parseInt(b));
-        uniqueYearsArray.forEach(function(year) {
-          let option = document.createElement("option");
-          option.value = year;
-          option.textContent = year;
-          filterYear.appendChild(option);
-        });
-        // Para Categoria
-        const filterCategoria = document.getElementById("filter-categoria");
-        let uniqueCategoriesArray = Array.from(uniqueCategories);
-        uniqueCategoriesArray.sort();
-        uniqueCategoriesArray.forEach(function(cat) {
-          let option = document.createElement("option");
-          option.value = cat;
-          option.textContent = cat;
-          filterCategoria.appendChild(option);
-        });
-        // Para Forma de Pgto
-        const filterForma = document.getElementById("filter-forma");
-        let uniqueFormaArray = Array.from(uniqueFormaPgto);
-        uniqueFormaArray.sort();
-        uniqueFormaArray.forEach(function(forma) {
-          let option = document.createElement("option");
-          option.value = forma;
-          option.textContent = forma;
-          filterForma.appendChild(option);
-        });
-        // Para Credor
-        const filterCredor = document.getElementById("filter-credor");
-        let uniqueCredorArray = Array.from(uniqueCredor);
-        uniqueCredorArray.sort();
-        uniqueCredorArray.forEach(function(credor) {
-          let option = document.createElement("option");
-          option.value = credor;
-          option.textContent = credor;
-          filterCredor.appendChild(option);
-        });
-        // Para Pago Por
-        const filterPago = document.getElementById("filter-pago");
-        let uniquePagoArray = Array.from(uniquePagoPor);
-        uniquePagoArray.sort();
-        uniquePagoArray.forEach(function(pago) {
-          let option = document.createElement("option");
-          option.value = pago;
-          option.textContent = pago;
-          filterPago.appendChild(option);
-        });
+        // --- Popula os dropdowns de filtro com os valores únicos (inicialmente, com todos os dados) ---
+        function populateAllDropdowns() {
+          // Para Ano
+          const filterYear = document.getElementById("filter-year");
+          let uniqueYearsArray = Array.from(uniqueYears);
+          uniqueYearsArray.sort((a, b) => parseInt(a) - parseInt(b));
+          uniqueYearsArray.forEach(function(year) {
+            let option = document.createElement("option");
+            option.value = year;
+            option.textContent = year;
+            filterYear.appendChild(option);
+          });
+          // Para Mês
+          const filterMonth = document.getElementById("filter-month");
+          let uniqueMonthsArray = Array.from(uniqueMonths);
+          uniqueMonthsArray.sort((a, b) => parseInt(a) - parseInt(b));
+          uniqueMonthsArray.forEach(function(month) {
+            let option = document.createElement("option");
+            option.value = month;
+            option.textContent = month;
+            filterMonth.appendChild(option);
+          });
+          // Para Categoria
+          const filterCategoria = document.getElementById("filter-categoria");
+          let uniqueCategoriesArray = Array.from(uniqueCategories);
+          uniqueCategoriesArray.sort();
+          uniqueCategoriesArray.forEach(function(cat) {
+            let option = document.createElement("option");
+            option.value = cat;
+            option.textContent = cat;
+            filterCategoria.appendChild(option);
+          });
+          // Para Forma de Pgto
+          const filterForma = document.getElementById("filter-forma");
+          let uniqueFormaArray = Array.from(uniqueFormaPgto);
+          uniqueFormaArray.sort();
+          uniqueFormaArray.forEach(function(forma) {
+            let option = document.createElement("option");
+            option.value = forma;
+            option.textContent = forma;
+            filterForma.appendChild(option);
+          });
+          // Para Credor
+          const filterCredor = document.getElementById("filter-credor");
+          let uniqueCredorArray = Array.from(uniqueCredor);
+          uniqueCredorArray.sort();
+          uniqueCredorArray.forEach(function(credor) {
+            let option = document.createElement("option");
+            option.value = credor;
+            option.textContent = credor;
+            filterCredor.appendChild(option);
+          });
+          // Para Pago Por
+          const filterPago = document.getElementById("filter-pago");
+          let uniquePagoArray = Array.from(uniquePagoPor);
+          uniquePagoArray.sort();
+          uniquePagoArray.forEach(function(pago) {
+            let option = document.createElement("option");
+            option.value = pago;
+            option.textContent = pago;
+            filterPago.appendChild(option);
+          });
+        }
         
+        populateAllDropdowns();
         addFilterListeners();
         applyFilter();
         
