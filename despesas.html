@@ -1,110 +1,167 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <title>Relatório de Despesas - Babylon Delicatessen</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Babylon Delicatessen - Despesas</title>
+  
+  <!-- Fonte Orbitron para o efeito futurista -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
+  
   <style>
-    /* Estilo neon azul */
-    body {
-      background-color: #000;
-      color: #0ff;
-      font-family: Arial, sans-serif;
-      margin: 20px;
+    /* Reset básico */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background-color: black;
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    /* Tabela com estilo neon azul */
+    table {
+      width: 90%;
+      margin: 120px auto 20px;
+      border-collapse: collapse;
+      background: rgba(0, 0, 0, 0.8);
+      border: 4px solid #00eaff;
+      border-radius: 8px;
+    }
+    thead th {
+      padding: 10px;
+      border: 1px solid #00eaff;
+      text-align: center;
+      background-color: #111;
+      font-size: 1.1rem;
+    }
+    tbody td {
+      padding: 10px;
+      border: 1px solid #00eaff;
+      text-align: center;
+    }
+    tbody tr:nth-child(even) {
+      background-color: #222;
+    }
+    /* Título da página */
     h1 {
       text-align: center;
-      text-shadow: 0 0 10px #0ff;
+      margin-top: 100px;
+      margin-bottom: 20px;
+      color: #00eaff;
+      text-shadow: 0 0 8px #00eaff, 0 0 15px #00eaff;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #0ff;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      text-shadow: 0 0 5px #0ff;
-    }
-    a {
-      color: #0ff;
-      text-decoration: none;
-      font-size: 1.5em;
-    }
-    a:hover {
-      text-shadow: 0 0 10px #0ff;
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #111;
+      border-top: 4px solid #00eaff;
+      margin-top: 40px;
     }
   </style>
 </head>
 <body>
   <h1>Relatório de Despesas - Babylon Delicatessen</h1>
-  <div id="table-container"></div>
-
+  
+  <!-- Tabela que receberá os dados do Google Sheets -->
+  <table id="sheet-table">
+    <thead>
+      <!-- Cabeçalho será inserido via JavaScript -->
+    </thead>
+    <tbody>
+      <!-- Dados serão inseridos via JavaScript -->
+    </tbody>
+  </table>
+  
+  <footer>
+    <p>© 2025 Babylon Delicatessen. Todos os direitos reservados.</p>
+  </footer>
+  
   <script>
-    // URL do CSV (obtida a partir da publicação da planilha no modo CSV)
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pub?gid=1163522917&single=true&output=csv";
-
-    // Função simples para converter CSV em array de arrays
-    function parseCSV(text) {
-      const lines = text.split("\n").filter(line => line.trim() !== "");
-      return lines.map(line => {
-        // Esta implementação simples supõe que os dados não contenham vírgulas internas
-        return line.split(",").map(item => item.replace(/^"|"$/g, '').trim());
-      });
-    }
-
-    fetch(csvUrl)
+    // URL da página publicada do Google Sheets
+    const publishedHtmlUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true";
+    
+    fetch(publishedHtmlUrl)
       .then(response => response.text())
-      .then(data => {
-        const allRows = parseCSV(data);
-
-        // Verifica se há linhas suficientes
-        if(allRows.length < 2) {
-          document.getElementById('table-container').innerHTML = "Dados insuficientes.";
+      .then(htmlText => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, "text/html");
+        // A tabela publicada normalmente possui a classe "waffle"
+        const sourceTable = doc.querySelector("table.waffle");
+        if (!sourceTable) {
+          console.error("Tabela não encontrada na página publicada.");
           return;
         }
-        // Desconsidera a primeira linha e usa a segunda como cabeçalho
-        const header = allRows[1];
-        const dataRows = allRows.slice(2);
-
-        // Identifica os índices das colunas de upload
-        const idxComprovante = header.indexOf("Anexar Comprovante de Pagamento (Upload de arquivo)");
-        const idxRecibo = header.indexOf("Anexar Recibo ou Nota Fiscal (Upload de arquivo)");
-
-        let html = "<table>";
-        // Geração do cabeçalho
-        html += "<tr>";
-        header.forEach(col => {
-          html += "<th>" + col + "</th>";
+        
+        const rows = sourceTable.querySelectorAll("tr");
+        if (rows.length < 2) {
+          console.error("Linhas insuficientes para processar os dados.");
+          return;
+        }
+        
+        // A primeira linha é ignorada; a segunda linha (índice 1) é o cabeçalho
+        const headerRow = rows[1];
+        const headerCells = headerRow.querySelectorAll("td, th");
+        const headers = [];
+        headerCells.forEach(cell => {
+          headers.push(cell.textContent.trim());
         });
-        html += "</tr>";
-
-        // Geração das linhas de dados
-        dataRows.forEach(row => {
-          // Completa com células vazias caso a linha esteja incompleta
-          if (row.length < header.length) {
-            row = row.concat(new Array(header.length - row.length).fill(""));
-          }
-          html += "<tr>";
-          row.forEach((cell, index) => {
-            // Se for uma das colunas de upload e houver link, substitui pelo emoji clicável
-            if ((index === idxComprovante || index === idxRecibo) && cell !== "") {
-              cell = '<a href="' + cell + '" download title="Download"><span>📥</span></a>';
+        
+        // Insere o cabeçalho na tabela da página
+        const thead = document.querySelector("#sheet-table thead");
+        const headerTr = document.createElement("tr");
+        headers.forEach(header => {
+          const th = document.createElement("th");
+          th.textContent = header;
+          headerTr.appendChild(th);
+        });
+        thead.appendChild(headerTr);
+        
+        // Identifica os índices das colunas que deverão ser exibidas com emoji (links para download)
+        let idxComprovante = headers.findIndex(text => text.toLowerCase().includes("anexar comprovante de pagamento"));
+        let idxRecibo = headers.findIndex(text => text.toLowerCase().includes("anexar recibo ou nota fiscal"));
+        
+        // Processa os dados a partir da terceira linha (índice 2)
+        const tbody = document.querySelector("#sheet-table tbody");
+        for (let i = 2; i < rows.length; i++) {
+          const cells = rows[i].querySelectorAll("td");
+          // Pula linhas vazias
+          if (!cells.length) continue;
+          const tr = document.createElement("tr");
+          for (let j = 0; j < headers.length; j++) {
+            const td = document.createElement("td");
+            if (j < cells.length) {
+              // Se a coluna for uma das de anexos, substitui pelo emoji com link
+              if (j === idxComprovante || j === idxRecibo) {
+                // Procura uma tag <a> dentro da célula
+                const aTag = cells[j].querySelector("a");
+                if (aTag && aTag.href) {
+                  const link = aTag.href;
+                  const a = document.createElement("a");
+                  a.href = link;
+                  a.target = "_blank";
+                  a.title = "Baixar arquivo";
+                  a.textContent = "⬇️";
+                  td.appendChild(a);
+                } else {
+                  td.textContent = "";
+                }
+              } else {
+                td.textContent = cells[j].textContent.trim();
+              }
+            } else {
+              td.textContent = "";
             }
-            html += "<td>" + cell + "</td>";
-          });
-          html += "</tr>";
-        });
-        html += "</table>";
-
-        document.getElementById('table-container').innerHTML = html;
+            tr.appendChild(td);
+          }
+          tbody.appendChild(tr);
+        }
       })
-      .catch(error => {
-        console.error("Erro ao carregar os dados: ", error);
-        document.getElementById('table-container').innerHTML = "Erro ao carregar os dados.";
-      });
+      .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
   </script>
 </body>
 </html>
