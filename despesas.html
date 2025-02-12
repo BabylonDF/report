@@ -1,280 +1,110 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard de Despesas - Babylon Delicatessen</title>
+  <title>Relatório de Despesas - Babylon Delicatessen</title>
   <style>
-    /* Estilo com tema neon azul */
+    /* Estilo neon azul */
     body {
       background-color: #000;
       color: #0ff;
       font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
+      margin: 20px;
     }
-    h1, h2 {
+    h1 {
       text-align: center;
-      text-shadow: 0 0 5px #0ff;
+      text-shadow: 0 0 10px #0ff;
     }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .filters {
-      margin: 20px auto;
-      text-align: center;
-    }
-    .filters label {
-      margin-right: 10px;
-      font-size: 18px;
-    }
-    .filters select {
-      background: #111;
-      border: 1px solid #0ff;
-      color: #0ff;
-      padding: 10px;
-      margin: 0 10px;
-      font-size: 16px;
-      border-radius: 4px;
-    }
-    .summary {
-      margin: 20px auto;
-      text-align: center;
-    }
-    .summary table {
-      margin: 0 auto;
+    table {
+      width: 100%;
       border-collapse: collapse;
+      margin-top: 20px;
     }
-    .summary th, .summary td {
-      border: 1px solid #0ff;
-      padding: 10px 15px;
-    }
-    table.data-table {
-      width: 90%;
-      margin: 20px auto;
-      border-collapse: collapse;
-      background: rgba(0, 0, 0, 0.8);
-      border: 1px solid #0ff;
-      border-radius: 4px;
-    }
-    table.data-table th, table.data-table td {
+    th, td {
       border: 1px solid #0ff;
       padding: 8px;
-      text-align: center;
+      text-align: left;
     }
-    table.data-table th {
-      background-color: #111;
-    }
-    table.data-table tr:hover {
-      background-color: rgba(0, 255, 255, 0.1);
+    th {
+      text-shadow: 0 0 5px #0ff;
     }
     a {
       color: #0ff;
       text-decoration: none;
+      font-size: 1.5em;
+    }
+    a:hover {
+      text-shadow: 0 0 10px #0ff;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Dashboard de Despesas</h1>
-    <h2>Babylon Delicatessen</h2>
-    
-    <!-- Dropdowns de Filtros -->
-    <div class="filters">
-      <label for="yearFilter">Ano:</label>
-      <select id="yearFilter">
-        <option value="" disabled selected>Selecione Ano</option>
-        <option value="all">Todos</option>
-      </select>
-      <label for="monthFilter">Mês:</label>
-      <select id="monthFilter">
-        <option value="" disabled selected>Selecione Mês</option>
-        <option value="all">Todos</option>
-      </select>
-    </div>
-    
-    <!-- Resumo -->
-    <div class="summary">
-      <h2>Resumo de Despesas</h2>
-      <div id="summaryContent"></div>
-    </div>
-    
-    <!-- Tabela com Dados -->
-    <table id="expensesTable" class="data-table">
-      <thead>
-        <tr id="tableHeader"></tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
-  
+  <h1>Relatório de Despesas - Babylon Delicatessen</h1>
+  <div id="table-container"></div>
+
   <script>
-    // URL da página publicada da planilha (HTML) – observe que usamos "pubhtml" e o gid correspondente
-    const publishedHtmlUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true';
-    
-    let allData = [];   // Array de objetos com os dados (linhas de dados)
-    let headers = [];   // Cabeçalhos extraídos (da segunda linha da tabela)
-    
-    // Função para extrair ano e mês de uma data no formato "dd/mm/aaaa"
-    function getYearMonth(dateStr) {
-      const parts = dateStr.split('/');
-      if (parts.length !== 3) return { year: null, month: null };
-      const day   = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const year  = parseInt(parts[2], 10);
-      if (isNaN(day) || isNaN(month) || isNaN(year)) return { year: null, month: null };
-      return { year, month };
-    }
-    
-    // Atualiza os dropdowns de Ano e Mês com os valores encontrados no campo "Data da Despesa"
-    function updateFilters(data) {
-      const yearSet = new Set();
-      const monthSet = new Set();
-      data.forEach(row => {
-        const dateStr = row['Data da Despesa'] || '';
-        const dt = getYearMonth(dateStr);
-        if (dt.year) yearSet.add(dt.year);
-        if (dt.month) monthSet.add(dt.month);
-      });
-      
-      const yearFilter = document.getElementById('yearFilter');
-      yearFilter.innerHTML = '<option value="" disabled selected>Selecione Ano</option><option value="all">Todos</option>';
-      Array.from(yearSet).sort((a, b) => a - b).forEach(year => {
-        yearFilter.innerHTML += `<option value="${year}">${year}</option>`;
-      });
-      
-      const monthFilter = document.getElementById('monthFilter');
-      monthFilter.innerHTML = '<option value="" disabled selected>Selecione Mês</option><option value="all">Todos</option>';
-      const monthNames = [ "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                           "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" ];
-      Array.from(monthSet).sort((a, b) => a - b).forEach(m => {
-        monthFilter.innerHTML += `<option value="${m}">${monthNames[m-1]}</option>`;
+    // URL do CSV (obtida a partir da publicação da planilha no modo CSV)
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pub?gid=1163522917&single=true&output=csv";
+
+    // Função simples para converter CSV em array de arrays
+    function parseCSV(text) {
+      const lines = text.split("\n").filter(line => line.trim() !== "");
+      return lines.map(line => {
+        // Esta implementação simples supõe que os dados não contenham vírgulas internas
+        return line.split(",").map(item => item.replace(/^"|"$/g, '').trim());
       });
     }
-    
-    // Renderiza a tabela: insere o cabeçalho e as linhas de dados
-    function renderTable(data) {
-      const tableHeader = document.getElementById('tableHeader');
-      tableHeader.innerHTML = '';
-      headers.forEach(header => {
-        tableHeader.innerHTML += `<th>${header}</th>`;
-      });
-      
-      const tableBody = document.getElementById('tableBody');
-      tableBody.innerHTML = '';
-      data.forEach(row => {
-        let tr = document.createElement('tr');
-        headers.forEach(header => {
-          let cellContent = row[header] || '';
-          // Se o campo for para comprovante ou recibo e contiver link, exibe emoji com link para download
-          if (header === 'Anexar Comprovante de Pagamento' && cellContent.trim() !== '') {
-            cellContent = `<a href="${cellContent}" download target="_blank">📎</a>`;
-          } else if (header === 'Anexar Recibo ou Nota Fiscal' && cellContent.trim() !== '') {
-            cellContent = `<a href="${cellContent}" download target="_blank">🧾</a>`;
-          }
-          tr.innerHTML += `<td>${cellContent}</td>`;
+
+    fetch(csvUrl)
+      .then(response => response.text())
+      .then(data => {
+        const allRows = parseCSV(data);
+
+        // Verifica se há linhas suficientes
+        if(allRows.length < 2) {
+          document.getElementById('table-container').innerHTML = "Dados insuficientes.";
+          return;
+        }
+        // Desconsidera a primeira linha e usa a segunda como cabeçalho
+        const header = allRows[1];
+        const dataRows = allRows.slice(2);
+
+        // Identifica os índices das colunas de upload
+        const idxComprovante = header.indexOf("Anexar Comprovante de Pagamento (Upload de arquivo)");
+        const idxRecibo = header.indexOf("Anexar Recibo ou Nota Fiscal (Upload de arquivo)");
+
+        let html = "<table>";
+        // Geração do cabeçalho
+        html += "<tr>";
+        header.forEach(col => {
+          html += "<th>" + col + "</th>";
         });
-        tableBody.appendChild(tr);
-      });
-    }
-    
-    // Calcula e exibe o resumo dos gastos por categoria e o total geral,
-    // usando o campo "Valor Pago" e formatando os valores para moeda brasileira (R$)
-    function renderSummary(data) {
-      let summary = {};
-      let overallTotal = 0;
-      data.forEach(row => {
-        const categoria = row['Selecione a categoria'] || 'Sem Categoria';
-        const valorStr = row['Valor Pago'] || '0';
-        // Remove pontos (se houver) e substitui a vírgula pelo ponto para conversão
-        const valorNum = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
-        overallTotal += valorNum;
-        summary[categoria] = (summary[categoria] || 0) + valorNum;
-      });
-      
-      let summaryHTML = '<table><thead><tr><th>Categoria</th><th>Total Gasto</th></tr></thead><tbody>';
-      for (let cat in summary) {
-        const formattedValor = summary[cat].toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        summaryHTML += `<tr><td>${cat}</td><td>${formattedValor}</td></tr>`;
-      }
-      const formattedTotal = overallTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      summaryHTML += `<tr><th>Total Geral</th><th>${formattedTotal}</th></tr>`;
-      summaryHTML += '</tbody></table>';
-      document.getElementById('summaryContent').innerHTML = summaryHTML;
-    }
-    
-    // Aplica os filtros de Ano e Mês e atualiza a tabela e o resumo
-    function applyFilters() {
-      const yearVal = document.getElementById('yearFilter').value;
-      const monthVal = document.getElementById('monthFilter').value;
-      const filteredData = allData.filter(row => {
-        const dt = getYearMonth(row['Data da Despesa'] || '');
-        const yearMatch = (yearVal === "" || yearVal === "all" || String(dt.year) === yearVal);
-        const monthMatch = (monthVal === "" || monthVal === "all" || String(dt.month) === monthVal);
-        return yearMatch && monthMatch;
-      });
-      renderTable(filteredData);
-      renderSummary(filteredData);
-    }
-    
-    document.getElementById('yearFilter').addEventListener('change', applyFilters);
-    document.getElementById('monthFilter').addEventListener('change', applyFilters);
-    
-    // Função para buscar e processar os dados da planilha publicada
-    function init() {
-      fetch(publishedHtmlUrl)
-        .then(response => response.text())
-        .then(htmlText => {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(htmlText, "text/html");
-          // Procura a tabela com a classe "waffle"
-          const sourceTable = doc.querySelector("table.waffle");
-          if (!sourceTable) {
-            console.error("Tabela não encontrada na página publicada.");
-            return;
+        html += "</tr>";
+
+        // Geração das linhas de dados
+        dataRows.forEach(row => {
+          // Completa com células vazias caso a linha esteja incompleta
+          if (row.length < header.length) {
+            row = row.concat(new Array(header.length - row.length).fill(""));
           }
-          const rows = sourceTable.querySelectorAll("tr");
-          if (rows.length < 2) {
-            console.error("Linhas insuficientes na tabela.");
-            return;
-          }
-          // Segundo método: use a segunda linha (índice 1) como cabeçalho
-          headers = [];
-          rows[1].querySelectorAll("td, th").forEach(cell => {
-            headers.push(cell.textContent.trim());
+          html += "<tr>";
+          row.forEach((cell, index) => {
+            // Se for uma das colunas de upload e houver link, substitui pelo emoji clicável
+            if ((index === idxComprovante || index === idxRecibo) && cell !== "") {
+              cell = '<a href="' + cell + '" download title="Download"><span>📥</span></a>';
+            }
+            html += "<td>" + cell + "</td>";
           });
-          // Se o cabeçalho estiver vazio, tente usar a primeira linha
-          if (headers.every(h => h === "")) {
-            headers = [];
-            rows[0].querySelectorAll("td, th").forEach(cell => {
-              headers.push(cell.textContent.trim());
-            });
-          }
-          // As linhas de dados são as a partir do índice 2
-          allData = [];
-          for (let i = 2; i < rows.length; i++) {
-            const cells = rows[i].querySelectorAll("td");
-            if (cells.length < headers.length) continue;
-            let rowObj = {};
-            cells.forEach((cell, index) => {
-              const link = cell.querySelector("a");
-              if (link) {
-                rowObj[headers[index]] = link.getAttribute("href");
-              } else {
-                rowObj[headers[index]] = cell.textContent.trim();
-              }
-            });
-            allData.push(rowObj);
-          }
-          updateFilters(allData);
-          renderTable(allData);
-          renderSummary(allData);
-        })
-        .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
-    }
-    
-    window.addEventListener("DOMContentLoaded", init);
+          html += "</tr>";
+        });
+        html += "</table>";
+
+        document.getElementById('table-container').innerHTML = html;
+      })
+      .catch(error => {
+        console.error("Erro ao carregar os dados: ", error);
+        document.getElementById('table-container').innerHTML = "Erro ao carregar os dados.";
+      });
   </script>
 </body>
 </html>
