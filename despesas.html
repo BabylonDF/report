@@ -2,13 +2,13 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard de Despesas - Babylon Delicatessen DF</title>
+  <title>Dashboard de Despesas - Babylon Delicatessen</title>
   <style>
     /* Estilo base com tema neon azul */
     body {
       background-color: #000;
       color: #0ff;
-      font-family: 'Arial', sans-serif;
+      font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
     }
@@ -67,13 +67,7 @@
     table.data-table tr:hover {
       background-color: rgba(0, 255, 255, 0.1);
     }
-    a {
-      color: #0ff;
-      text-decoration: none;
-    }
   </style>
-  <!-- Biblioteca para converter CSV -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js" integrity="sha512-tUjwbYMBIDaZmGMUvqjfA8byGzG2p+FE0LWt7n7F3pF3RztR90b8lIg0h6SZEdW+x6H6f/eU/6Lt0dEyyiP9dQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
   <div class="container">
@@ -126,23 +120,19 @@
     </div>
   </div>
 
+  <!-- Inclui a biblioteca Tabletop.js -->
+  <script src="https://cdn.jsdelivr.net/npm/tabletop@1.5.1/src/tabletop.min.js"></script>
   <script>
-    // Atualize a URL para a nova versão CSV da sua planilha
-    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pub?gid=1163522917&single=true&output=csv';
+    // URL da sua planilha publicada (em formato HTML) – certifique-se de que ela está pública na web.
+    var publicSpreadsheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917';
 
-    // Variável para armazenar todos os dados
-    let allData = [];
-
-    /**
-     * Função para extrair ano e mês a partir de uma data.
-     * Tenta converter a string para objeto Date; caso o formato seja dd/mm/aaaa, faz ajuste.
-     */
+    // Função para extrair ano e mês a partir de uma string de data.
     function getYearMonth(dateString) {
-      let date = new Date(dateString);
+      var date = new Date(dateString);
       if (isNaN(date)) {
-        // Se o formato for dd/mm/aaaa, substitui para mm/dd/aaaa
-        const parts = dateString.split('/');
-        if(parts.length === 3) {
+        // Caso o formato seja dd/mm/aaaa, faz ajuste
+        var parts = dateString.split('/');
+        if (parts.length === 3) {
           date = new Date(parts[1] + '/' + parts[0] + '/' + parts[2]);
         }
       }
@@ -150,125 +140,110 @@
       return { year: date.getFullYear(), month: date.getMonth() + 1 };
     }
 
-    /**
-     * Preenche os selects de filtros com os anos e meses disponíveis nos dados.
-     */
-    function updateFilters(data) {
-      const yearSet = new Set();
-      const monthSet = new Set();
-      
-      data.forEach(row => {
-        const { year, month } = getYearMonth(row['Data da Despesa']);
-        if(year) yearSet.add(year);
-        if(month) monthSet.add(month);
-      });
+    var allData = [];
 
-      // Preenche o filtro de Ano
-      const yearFilter = document.getElementById('yearFilter');
-      yearFilter.innerHTML = '<option value="all">Todos</option>';
-      Array.from(yearSet).sort().forEach(year => {
-        yearFilter.innerHTML += `<option value="${year}">${year}</option>`;
-      });
-
-      // Preenche o filtro de Mês (apresentando o nome do mês em português)
-      const monthFilter = document.getElementById('monthFilter');
-      monthFilter.innerHTML = '<option value="all">Todos</option>';
-      const monthNames = [ "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                           "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" ];
-      Array.from(monthSet).sort((a, b) => a - b).forEach(month => {
-        monthFilter.innerHTML += `<option value="${month}">${monthNames[month-1]}</option>`;
+    // Inicializa o Tabletop para buscar os dados da planilha
+    function init() {
+      Tabletop.init({
+        key: publicSpreadsheetUrl,
+        callback: showInfo,
+        simpleSheet: true
       });
     }
 
-    /**
-     * Renderiza a tabela de despesas com os dados filtrados.
-     */
-    function renderTable(data) {
-      const tbody = document.querySelector('#expensesTable tbody');
-      tbody.innerHTML = ''; // Limpa os dados atuais
+    // Função de callback que recebe os dados e chama as funções de renderização
+    function showInfo(data, tabletop) {
+      allData = data;
+      updateFilters(allData);
+      renderTable(allData);
+      renderSummary(allData);
+    }
 
-      data.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${row['Carimbo de data/hora'] || ''}</td>
-          <td>${row['Data da Despesa'] || ''}</td>
-          <td>${row['Selecione a categoria'] || ''}</td>
-          <td>${row['Escolha a opção de pagamento'] || ''}</td>
-          <td>${row['Nº do documento'] || ''}</td>
-          <td>${row['Nome do Credor'] || ''}</td>
-          <td>${row['Descrição'] || ''}</td>
-          <td>${row['Valor Pago'] || ''}</td>
-          <td>${row['Custeado por'] || ''}</td>
-          <td>${row['Anexar Comprovante de Pagamento'] || ''}</td>
-          <td>${row['Anexar Recibo ou Nota Fiscal'] || ''}</td>
-        `;
+    // Preenche os filtros de Ano e Mês com os dados disponíveis
+    function updateFilters(data) {
+      var yearSet = new Set();
+      var monthSet = new Set();
+      data.forEach(function(row) {
+        var dateInfo = getYearMonth(row['Data da Despesa']);
+        if (dateInfo.year) yearSet.add(dateInfo.year);
+        if (dateInfo.month) monthSet.add(dateInfo.month);
+      });
+      var yearFilter = document.getElementById('yearFilter');
+      yearFilter.innerHTML = '<option value="all">Todos</option>';
+      Array.from(yearSet).sort().forEach(function(year) {
+        yearFilter.innerHTML += '<option value="' + year + '">' + year + '</option>';
+      });
+
+      var monthFilter = document.getElementById('monthFilter');
+      monthFilter.innerHTML = '<option value="all">Todos</option>';
+      var monthNames = [ "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                         "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" ];
+      Array.from(monthSet).sort(function(a, b) { return a - b; }).forEach(function(month) {
+        monthFilter.innerHTML += '<option value="' + month + '">' + monthNames[month - 1] + '</option>';
+      });
+    }
+
+    // Renderiza a tabela com os dados (ou dados filtrados)
+    function renderTable(data) {
+      var tbody = document.querySelector('#expensesTable tbody');
+      tbody.innerHTML = '';
+      data.forEach(function(row) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + (row['Carimbo de data/hora'] || '') + '</td>' +
+          '<td>' + (row['Data da Despesa'] || '') + '</td>' +
+          '<td>' + (row['Selecione a categoria'] || '') + '</td>' +
+          '<td>' + (row['Escolha a opção de pagamento'] || '') + '</td>' +
+          '<td>' + (row['Nº do documento'] || '') + '</td>' +
+          '<td>' + (row['Nome do Credor'] || '') + '</td>' +
+          '<td>' + (row['Descrição'] || '') + '</td>' +
+          '<td>' + (row['Valor Pago'] || '') + '</td>' +
+          '<td>' + (row['Custeado por'] || '') + '</td>' +
+          '<td>' + (row['Anexar Comprovante de Pagamento'] || '') + '</td>' +
+          '<td>' + (row['Anexar Recibo ou Nota Fiscal'] || '') + '</td>';
         tbody.appendChild(tr);
       });
     }
 
-    /**
-     * Calcula e exibe um resumo com o total gasto por categoria e o total geral.
-     */
+    // Calcula e exibe um resumo dos totais por categoria e o total geral
     function renderSummary(data) {
-      const summary = {};
-      let overallTotal = 0;
-
-      data.forEach(row => {
-        const categoria = row['Selecione a categoria'] || 'Sem Categoria';
-        // Converte o valor para número (substitui vírgula por ponto, se necessário)
-        const valor = parseFloat((row['Valor Pago'] || '0').replace(',', '.')) || 0;
+      var summary = {};
+      var overallTotal = 0;
+      data.forEach(function(row) {
+        var categoria = row['Selecione a categoria'] || 'Sem Categoria';
+        var valor = parseFloat((row['Valor Pago'] || '0').replace(',', '.')) || 0;
         overallTotal += valor;
         summary[categoria] = (summary[categoria] || 0) + valor;
       });
-
-      let summaryHTML = '<table><thead><tr><th>Categoria</th><th>Total Gasto</th></tr></thead><tbody>';
-      for (let cat in summary) {
-        summaryHTML += `<tr><td>${cat}</td><td>${summary[cat].toFixed(2)}</td></tr>`;
+      var summaryHTML = '<table><thead><tr><th>Categoria</th><th>Total Gasto</th></tr></thead><tbody>';
+      for (var cat in summary) {
+        summaryHTML += '<tr><td>' + cat + '</td><td>' + summary[cat].toFixed(2) + '</td></tr>';
       }
-      summaryHTML += `<tr><th>Total Geral</th><th>${overallTotal.toFixed(2)}</th></tr>`;
+      summaryHTML += '<tr><th>Total Geral</th><th>' + overallTotal.toFixed(2) + '</th></tr>';
       summaryHTML += '</tbody></table>';
-
       document.getElementById('summaryContent').innerHTML = summaryHTML;
     }
 
-    /**
-     * Aplica os filtros selecionados e atualiza a tabela e o resumo.
-     */
+    // Aplica os filtros selecionados e atualiza a tabela e o resumo
     function applyFilters() {
-      const yearFilter = document.getElementById('yearFilter').value;
-      const monthFilter = document.getElementById('monthFilter').value;
-      
-      const filteredData = allData.filter(row => {
-        const { year, month } = getYearMonth(row['Data da Despesa']);
-        const yearMatch = (yearFilter === 'all' || String(year) === yearFilter);
-        const monthMatch = (monthFilter === 'all' || String(month) === monthFilter);
+      var yearFilter = document.getElementById('yearFilter').value;
+      var monthFilter = document.getElementById('monthFilter').value;
+      var filteredData = allData.filter(function(row) {
+        var dateInfo = getYearMonth(row['Data da Despesa']);
+        var yearMatch = (yearFilter === 'all' || String(dateInfo.year) === yearFilter);
+        var monthMatch = (monthFilter === 'all' || String(dateInfo.month) === monthFilter);
         return yearMatch && monthMatch;
       });
-
       renderTable(filteredData);
       renderSummary(filteredData);
     }
 
-    // Carrega os dados da planilha via Papa Parse
-    Papa.parse(csvUrl, {
-      download: true,
-      header: true,
-      complete: function(results) {
-        allData = results.data;
-        // Remove linhas vazias (se houver)
-        allData = allData.filter(row => row['Carimbo de data/hora']);
-        updateFilters(allData);
-        renderTable(allData);
-        renderSummary(allData);
-      },
-      error: function(err) {
-        console.error('Erro ao carregar os dados:', err);
-      }
-    });
-
     // Registra os eventos de mudança dos filtros
     document.getElementById('yearFilter').addEventListener('change', applyFilters);
     document.getElementById('monthFilter').addEventListener('change', applyFilters);
+
+    // Inicializa a busca dos dados quando a página carregar
+    window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
