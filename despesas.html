@@ -144,21 +144,24 @@
   </style>
 </head>
 <body>
-  <!-- Modal de Login -->
-  <div id="login-modal" class="modal">
-    <div class="modal-content">
-      <h1>Babylon Delicatessen</h1>
-      <p>Área restrita à administração</p>
-      <h2>Login</h2>
-      <input type="text" id="username" placeholder="Usuário" />
-      <input type="password" id="password" placeholder="Senha" />
-      <button id="login-btn">Entrar</button>
-      <div id="login-error" class="error"></div>
-      <p style="margin-top: 15px; font-size: 0.9em; color: #333;">
-        Dúvidas? Entre em contato com <a href="https://wa.me/5561998198688" target="_blank" style="color: blue; text-decoration: underline;">Marcelo</a>.
-      </p>
-    </div>
+<!-- Modal de Login -->
+<div id="login-modal" class="modal">
+  <div class="modal-content">
+    <!-- Logo centralizada -->
+    <img src="logo.png" alt="Logo" style="display: block; margin: 0 auto 10px; max-width: 150px;">
+    <h1>Babylon Delicatessen</h1>
+    <p>Área restrita à administração</p>
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Usuário" />
+    <input type="password" id="password" placeholder="Senha" />
+    <button id="login-btn">Entrar</button>
+    <div id="login-error" class="error"></div>
+    <p style="margin-top: 15px; font-size: 0.9em; color: #333;">
+      Dúvidas? Entre em contato com <a href="https://wa.me/5561998198688" target="_blank" style="color: blue; text-decoration: underline;">Marcelo</a>.
+    </p>
   </div>
+</div>
+
   
   <!-- Conteúdo da Página (exibido após login) -->
   <div id="page-content" style="display: none;">
