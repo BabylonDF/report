@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>-/Babylon Delicatessen - Despesas</title>
+  <title>Babylon Delicatessen - Despesas</title>
   
   <!-- Fonte Orbitron para o efeito futurista -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
@@ -112,8 +112,7 @@
           return;
         }
         
-        // A primeira linha é ignorada; a segunda (índice 1) é o cabeçalho
-        // Ignora a primeira célula (numeração da linha)
+        // Processa o cabeçalho: ignora a primeira célula (numeração)
         const headerRow = rows[1];
         const headerCells = headerRow.querySelectorAll("td, th");
         const headers = Array.from(headerCells).slice(1).map(cell => cell.textContent.trim());
@@ -132,19 +131,19 @@
         let idxComprovante = headers.findIndex(text => text.toLowerCase().includes("anexar comprovante de pagamento"));
         let idxRecibo = headers.findIndex(text => text.toLowerCase().includes("anexar recibo ou nota fiscal"));
         
-        // Processa os dados a partir da terceira linha (índice 2)
+        // Processa os dados a partir da terceira linha (índice 2) ignorando a primeira célula de cada linha
         const tbody = document.querySelector("#sheet-table tbody");
         for (let i = 2; i < rows.length; i++) {
           const cells = rows[i].querySelectorAll("td");
           if (!cells.length) continue;
-          // Como a primeira célula da linha de dados corresponde à numeração (e não é exibida),
-          // utilizamos os dados a partir do índice 0 dos cells, pois estes já vêm sem o número.
+          // Ignora a primeira célula (numeração) de cada linha
+          const rowCells = Array.from(cells).slice(1);
           const tr = document.createElement("tr");
-          for (let j = 0; j < cells.length; j++) {
+          for (let j = 0; j < rowCells.length; j++) {
             const td = document.createElement("td");
-            // Se a coluna for uma das de anexos, substitui pelo emoji com link
+            // Se for a coluna de anexo, substitui pelo emoji com link
             if (j === idxComprovante || j === idxRecibo) {
-              const aTag = cells[j].querySelector("a");
+              const aTag = rowCells[j].querySelector("a");
               if (aTag && aTag.href) {
                 const a = document.createElement("a");
                 a.href = aTag.href;
@@ -156,7 +155,7 @@
                 td.textContent = "";
               }
             } else {
-              td.textContent = cells[j].textContent.trim();
+              td.textContent = rowCells[j].textContent.trim();
             }
             tr.appendChild(td);
           }
