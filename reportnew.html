@@ -59,7 +59,7 @@
       color: white;
       font-size: 18px;
     }
-    /* Print summary: informações que serão exibidas apenas na impressão */
+    /* Print summary: informações que serão exibidas somente na impressão */
     #print-summary {
       display: none;
       margin: 10px 5%;
@@ -422,7 +422,6 @@
           aValue = parseDate(cellA);
           bValue = parseDate(cellB);
         } else if (type === "number") {
-          // Remove formatação monetária e converte para número
           aValue = parseFloat(cellA.replace(/[^\d,-]/g, "").replace(",", "."));
           bValue = parseFloat(cellB.replace(/[^\d,-]/g, "").replace(",", "."));
         } else { // text
@@ -435,7 +434,6 @@
         return 0;
       });
       
-      // Reanexa as linhas ordenadas
       rows.forEach(row => tbody.appendChild(row));
     }
     
@@ -555,19 +553,18 @@
           if (header === "Data" || header === "Credor" || header === "Valor") {
             let sortIcon = document.createElement("span");
             sortIcon.classList.add("sort-icon");
-            // Define ordem inicial: para Data o padrão é descendente; para as demais, ascendente.
             if (header === "Data") {
+              // Padrão: ordenação descendente para Data
               sortIcon.textContent = " ▼";
               sortIcon.dataset.order = "desc";
             } else {
+              // Para as demais, padrão ascendente
               sortIcon.textContent = " ▲";
               sortIcon.dataset.order = "asc";
             }
-            // Determina o tipo para a ordenação
             let sortType = header === "Data" ? "date" : (header === "Valor" ? "number" : "text");
             sortIcon.addEventListener("click", function() {
               let currentOrder = sortIcon.dataset.order;
-              // Alterna a ordem
               if (currentOrder === "asc") {
                 sortIcon.textContent = " ▼";
                 sortIcon.dataset.order = "desc";
@@ -590,7 +587,6 @@
           if (header === "Categoria" || header === "Forma de Pgto" || header === "Pago Por") {
             th.classList.add("hide-web");
           }
-          // Para colunas que não são de comprovante ou recibo, nada mais a fazer
           headerTr.appendChild(th);
         });
         thead.appendChild(headerTr);
@@ -645,12 +641,10 @@
             if (pago !== "") uniquePagoPor.add(pago);
           }
           
-          // Cria a linha e trata a coluna "Valor"
           const tr = document.createElement("tr");
           let valorPagoNum = 0;
           filteredCells.forEach((cell, j) => {
             const td = document.createElement("td");
-            // Se for comprovante/recibo, trata de forma especial (e oculta em impressão)
             if (displayHeaders[j].toLowerCase().includes("comprovante") || displayHeaders[j].toLowerCase().includes("recibo")) {
               const aTag = cell.querySelector("a");
               if (aTag && aTag.href) {
@@ -677,13 +671,11 @@
             else {
               td.textContent = cell.textContent.trim();
             }
-            // Para impressão: apenas permite as colunas definidas em allowedPrint
             if (allowedPrint.indexOf(displayHeaders[j]) !== -1) {
               td.classList.add("print-allowed");
             } else {
               td.classList.add("print-hide");
             }
-            // Se a coluna for "Categoria", "Forma de Pgto" ou "Pago Por", ela já está oculta na web
             if (displayHeaders[j] === "Categoria" || displayHeaders[j] === "Forma de Pgto" || displayHeaders[j] === "Pago Por") {
               td.classList.add("hide-web");
             }
@@ -695,7 +687,6 @@
         
         /***** Popula os dropdowns de filtro com os valores únicos *****/
         function populateAllDropdowns() {
-          // Para Ano
           const filterYear = document.getElementById("filter-year");
           let uniqueYearsArray = Array.from(uniqueYears);
           uniqueYearsArray.sort((a, b) => parseInt(a) - parseInt(b));
@@ -705,7 +696,6 @@
             option.textContent = year;
             filterYear.appendChild(option);
           });
-          // Para Mês
           const filterMonth = document.getElementById("filter-month");
           let uniqueMonthsArray = Array.from(uniqueMonths);
           uniqueMonthsArray.sort((a, b) => parseInt(a) - parseInt(b));
@@ -715,7 +705,6 @@
             option.textContent = month;
             filterMonth.appendChild(option);
           });
-          // Para Categoria
           const filterCategoria = document.getElementById("filter-categoria");
           let uniqueCategoriesArray = Array.from(uniqueCategories);
           uniqueCategoriesArray.sort();
@@ -725,7 +714,6 @@
             option.textContent = cat;
             filterCategoria.appendChild(option);
           });
-          // Para Forma de Pgto
           const filterForma = document.getElementById("filter-forma");
           let uniqueFormaArray = Array.from(uniqueFormaPgto);
           uniqueFormaArray.sort();
@@ -735,7 +723,6 @@
             option.textContent = forma;
             filterForma.appendChild(option);
           });
-          // Para Credor
           const filterCredor = document.getElementById("filter-credor");
           let uniqueCredorArray = Array.from(uniqueCredor);
           uniqueCredorArray.sort();
@@ -745,7 +732,6 @@
             option.textContent = credor;
             filterCredor.appendChild(option);
           });
-          // Para Pago Por
           const filterPago = document.getElementById("filter-pago");
           let uniquePagoArray = Array.from(uniquePagoPor);
           uniquePagoArray.sort();
@@ -760,7 +746,7 @@
         populateAllDropdowns();
         addFilterListeners();
         applyFilter();
-        // Ordena inicialmente a coluna "Data" em ordem decrescente
+        // Ordena inicialmente a coluna "Data" em ordem decrescente (mais recente para mais antigo)
         sortTableByColumn(displayHeaders.findIndex(h => h === "Data"), "desc", "date");
       })
       .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
