@@ -84,11 +84,15 @@
     <div class="filters">
       <label for="yearFilter">Ano:</label>
       <select id="yearFilter">
-         <option value="all">Todos</option>
+        <!-- Placeholder e opção "Todos" -->
+        <option value="" disabled selected>Selecione Ano</option>
+        <option value="all">Todos</option>
       </select>
       <label for="monthFilter">Mês:</label>
       <select id="monthFilter">
-         <option value="all">Todos</option>
+        <!-- Placeholder e opção "Todos" -->
+        <option value="" disabled selected>Selecione Mês</option>
+        <option value="all">Todos</option>
       </select>
     </div>
 
@@ -103,7 +107,7 @@
       <h2>Detalhes das Despesas</h2>
       <table id="expensesTable" class="data-table">
         <thead>
-          <tr><!-- Cabeçalhos serão inseridos aqui --></tr>
+          <tr><!-- Cabeçalhos serão inseridos aqui (linha 2 da planilha) --></tr>
         </thead>
         <tbody><!-- Linhas dos dados serão inseridas via JavaScript --></tbody>
       </table>
@@ -111,14 +115,15 @@
   </div>
 
   <script>
-    // URL da sua planilha (versão pubhtml)
+    // URL da planilha (versão pubhtml)
     var publicSpreadsheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true';
 
-    var allData = []; // Dados (a partir da terceira linha)
-    var headers = []; // Cabeçalhos definidos na segunda linha
+    var allData = [];   // Dados mapeados (a partir da linha 3)
+    var headers = [];   // Cabeçalhos definidos na linha 2
 
     /**
-     * Função para extrair o ano e o mês de uma data no formato dd/mm/aaaa.
+     * Extrai o ano e o mês de uma data no formato dd/mm/aaaa.
+     * Retorna um objeto { year, month } ou {year:null, month:null} se inválido.
      */
     function getYearMonth(dateString) {
       var parts = dateString.split('/');
@@ -131,26 +136,28 @@
     }
 
     /**
-     * Preenche os filtros (Ano e Mês) usando os dados disponíveis.
+     * Preenche os dropdowns de Ano e Mês com os valores disponíveis no campo "Data da Despesa".
+     * Os dropdowns já possuem um placeholder ("Selecione Ano"/"Selecione Mês") e uma opção "Todos".
      */
     function updateFilters(data) {
       var yearSet = new Set();
       var monthSet = new Set();
       
       data.forEach(function(row) {
-        var dateInfo = getYearMonth(row['Data da Despesa']);
+        var dateInfo = getYearMonth(row['Data da Despesa'] || '');
         if (dateInfo.year) yearSet.add(dateInfo.year);
         if (dateInfo.month) monthSet.add(dateInfo.month);
       });
-
+      
       var yearFilter = document.getElementById('yearFilter');
-      yearFilter.innerHTML = '<option value="all">Todos</option>';
+      // Mantém os dois primeiros options (placeholder e "Todos")
+      yearFilter.innerHTML = '<option value="" disabled selected>Selecione Ano</option><option value="all">Todos</option>';
       Array.from(yearSet).sort().forEach(function(year) {
         yearFilter.innerHTML += '<option value="' + year + '">' + year + '</option>';
       });
 
       var monthFilter = document.getElementById('monthFilter');
-      monthFilter.innerHTML = '<option value="all">Todos</option>';
+      monthFilter.innerHTML = '<option value="" disabled selected>Selecione Mês</option><option value="all">Todos</option>';
       var monthNames = [ "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
                          "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" ];
       Array.from(monthSet).sort(function(a, b) { return a - b; }).forEach(function(month) {
@@ -160,8 +167,8 @@
 
     /**
      * Renderiza a tabela:
-     * - Insere os cabeçalhos (da segunda linha da planilha).
-     * - Insere as linhas dos dados (a partir da terceira linha).
+     * - Insere os cabeçalhos (linha 2 da planilha) na tag <thead>.
+     * - Insere as linhas dos dados (a partir da linha 3) no <tbody>.
      */
     function renderTable(data) {
       var thead = document.querySelector('#expensesTable thead tr');
@@ -182,13 +189,16 @@
     }
 
     /**
-     * Calcula e exibe um resumo dos gastos por categoria e o total geral.
+     * Calcula e exibe um resumo dos gastos:
+     * - Agrupa os valores por categoria (campo "Selecione a categoria")
+     * - Exibe o total por categoria e o total geral.
      */
     function renderSummary(data) {
       var summary = {};
       var overallTotal = 0;
       data.forEach(function(row) {
         var categoria = row['Selecione a categoria'] || 'Sem Categoria';
+        // Converte "Valor Pago" para número (substitui vírgula por ponto)
         var valor = parseFloat((row['Valor Pago'] || '0').replace(',', '.')) || 0;
         overallTotal += valor;
         summary[categoria] = (summary[categoria] || 0) + valor;
@@ -203,15 +213,17 @@
     }
 
     /**
-     * Aplica os filtros (Ano e Mês) e atualiza a tabela e o resumo.
+     * Aplica os filtros de Ano e Mês e atualiza a tabela e o resumo.
+     * Se o dropdown estiver com o placeholder (valor "" ou "all"), não filtra.
      */
     function applyFilters() {
       var yearFilter = document.getElementById('yearFilter').value;
       var monthFilter = document.getElementById('monthFilter').value;
+      
       var filteredData = allData.filter(function(row) {
-        var dateInfo = getYearMonth(row['Data da Despesa']);
-        var yearMatch = (yearFilter === 'all' || String(dateInfo.year) === yearFilter);
-        var monthMatch = (monthFilter === 'all' || String(dateInfo.month) === monthFilter);
+        var dateInfo = getYearMonth(row['Data da Despesa'] || '');
+        var yearMatch = (yearFilter === "" || yearFilter === "all" || String(dateInfo.year) === yearFilter);
+        var monthMatch = (monthFilter === "" || monthFilter === "all" || String(dateInfo.month) === monthFilter);
         return yearMatch && monthMatch;
       });
       renderTable(filteredData);
@@ -224,27 +236,28 @@
 
     /**
      * Inicializa o Tabletop para buscar os dados da planilha.
-     * Aqui usamos o método "raw" para acessar a matriz completa e então:
-     * - Ignoramos a primeira linha.
-     * - Utilizamos a segunda linha como cabeçalho.
-     * - Mapeamos as linhas seguintes para objetos.
-     *
-     * Note que o nome da aba é "Respostas".
+     * - Utiliza o método "raw" para obter a matriz completa.
+     * - Ignora a primeira linha.
+     * - Usa a segunda linha como cabeçalho.
+     * - Mapeia as linhas seguintes (a partir da terceira) para objetos.
+     * O nome da aba é "Respostas".
      */
     function init() {
       Tabletop.init({
         key: publicSpreadsheetUrl,
         callback: function(data, tabletop) {
-          // Acessa os dados da aba "Respostas"
-          var rawData = tabletop.sheets("Respostas").raw;
-          if (!rawData || rawData.length < 2) {
+          var sheet = tabletop.sheets("Respostas");
+          if (!sheet || !sheet.raw || sheet.raw.length < 2) {
             console.error("Dados insuficientes na planilha.");
             return;
           }
-          // A segunda linha é usada como cabeçalho
-          headers = rawData[1];
-          // As linhas a partir da terceira são os dados
-          allData = rawData.slice(2).map(function(row) {
+          // Debug: visualizar rawData no console (opcional)
+          // console.log("Raw data:", sheet.raw);
+          
+          // Linha 2 (índice 1) será o cabeçalho
+          headers = sheet.raw[1];
+          // A partir da linha 3 (índice 2) são os dados
+          allData = sheet.raw.slice(2).map(function(row) {
             var obj = {};
             headers.forEach(function(header, index) {
               obj[header] = row[index];
