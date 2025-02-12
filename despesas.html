@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>- Dashboard de Despesas - Babylon Delicatessen</title>
+  <title>Dashboard de Despesas - Babylon Delicatessen</title>
   <style>
     /* Estilo com tema neon azul */
     body {
@@ -110,13 +110,13 @@
   </div>
   
   <script>
-    // URL da página publicada da planilha (HTML) – observe que usa "pubhtml" e o gid da aba "Respostas"
+    // URL da página publicada da planilha (HTML) – observe que usamos "pubhtml" e o gid correspondente
     const publishedHtmlUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true';
     
     let allData = [];   // Array de objetos com os dados (linhas de dados)
-    let headers = [];   // Cabeçalhos extraídos da 2ª linha ou do <thead>
+    let headers = [];   // Cabeçalhos extraídos (da segunda linha da tabela)
     
-    // Função para extrair ano e mês de uma data no formato dd/mm/aaaa
+    // Função para extrair ano e mês de uma data no formato "dd/mm/aaaa"
     function getYearMonth(dateStr) {
       const parts = dateStr.split('/');
       if (parts.length !== 3) return { year: null, month: null };
@@ -153,7 +153,7 @@
       });
     }
     
-    // Renderiza a tabela: insere cabeçalhos e dados
+    // Renderiza a tabela: insere o cabeçalho e as linhas de dados
     function renderTable(data) {
       const tableHeader = document.getElementById('tableHeader');
       tableHeader.innerHTML = '';
@@ -167,7 +167,7 @@
         let tr = document.createElement('tr');
         headers.forEach(header => {
           let cellContent = row[header] || '';
-          // Se o campo for um link para comprovante ou recibo, exibe emoji com link para download
+          // Se o campo for para comprovante ou recibo e contiver link, exibe emoji com link para download
           if (header === 'Anexar Comprovante de Pagamento' && cellContent.trim() !== '') {
             cellContent = `<a href="${cellContent}" download target="_blank">📎</a>`;
           } else if (header === 'Anexar Recibo ou Nota Fiscal' && cellContent.trim() !== '') {
@@ -179,27 +179,32 @@
       });
     }
     
-    // Calcula e exibe o resumo dos gastos por categoria e o total geral
+    // Calcula e exibe o resumo dos gastos por categoria e o total geral,
+    // usando o campo "Valor Pago" e formatando os valores para moeda brasileira (R$)
     function renderSummary(data) {
       let summary = {};
       let overallTotal = 0;
       data.forEach(row => {
         const categoria = row['Selecione a categoria'] || 'Sem Categoria';
         const valorStr = row['Valor Pago'] || '0';
-        const valor = parseFloat(valorStr.replace(',', '.')) || 0;
-        overallTotal += valor;
-        summary[categoria] = (summary[categoria] || 0) + valor;
+        // Remove pontos (se houver) e substitui a vírgula pelo ponto para conversão
+        const valorNum = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+        overallTotal += valorNum;
+        summary[categoria] = (summary[categoria] || 0) + valorNum;
       });
+      
       let summaryHTML = '<table><thead><tr><th>Categoria</th><th>Total Gasto</th></tr></thead><tbody>';
       for (let cat in summary) {
-        summaryHTML += `<tr><td>${cat}</td><td>${summary[cat].toFixed(2)}</td></tr>`;
+        const formattedValor = summary[cat].toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        summaryHTML += `<tr><td>${cat}</td><td>${formattedValor}</td></tr>`;
       }
-      summaryHTML += `<tr><th>Total Geral</th><th>${overallTotal.toFixed(2)}</th></tr>`;
+      const formattedTotal = overallTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      summaryHTML += `<tr><th>Total Geral</th><th>${formattedTotal}</th></tr>`;
       summaryHTML += '</tbody></table>';
       document.getElementById('summaryContent').innerHTML = summaryHTML;
     }
     
-    // Aplica os filtros de Ano e Mês e atualiza tabela e resumo
+    // Aplica os filtros de Ano e Mês e atualiza a tabela e o resumo
     function applyFilters() {
       const yearVal = document.getElementById('yearFilter').value;
       const monthVal = document.getElementById('monthFilter').value;
@@ -229,45 +234,30 @@
             console.error("Tabela não encontrada na página publicada.");
             return;
           }
-          
-          // Se a tabela possuir <thead> e <tbody>, use-os; caso contrário, use todas as linhas
-          let headerRow;
-          const thead = sourceTable.querySelector("thead");
-          if (thead) {
-            headerRow = thead.querySelector("tr");
-          } else {
-            // Se não houver thead, considere a segunda linha (índice 1) como cabeçalho
-            const rows = sourceTable.querySelectorAll("tr");
-            if (rows.length < 2) {
-              console.error("Linhas insuficientes na tabela.");
-              return;
-            }
-            headerRow = rows[1];
+          const rows = sourceTable.querySelectorAll("tr");
+          if (rows.length < 2) {
+            console.error("Linhas insuficientes na tabela.");
+            return;
           }
-          
-          // Extrai os cabeçalhos
+          // Segundo método: use a segunda linha (índice 1) como cabeçalho
           headers = [];
-          headerRow.querySelectorAll("td, th").forEach(cell => {
+          rows[1].querySelectorAll("td, th").forEach(cell => {
             headers.push(cell.textContent.trim());
           });
-          
-          // Para os dados, se houver <tbody>, use as suas linhas; caso contrário, use as linhas após o cabeçalho
-          let dataRows = [];
-          const tbody = sourceTable.querySelector("tbody");
-          if (tbody) {
-            dataRows = tbody.querySelectorAll("tr");
-          } else {
-            const rows = sourceTable.querySelectorAll("tr");
-            dataRows = Array.from(rows).slice(2);
+          // Se o cabeçalho estiver vazio, tente usar a primeira linha
+          if (headers.every(h => h === "")) {
+            headers = [];
+            rows[0].querySelectorAll("td, th").forEach(cell => {
+              headers.push(cell.textContent.trim());
+            });
           }
-          
+          // As linhas de dados são as a partir do índice 2
           allData = [];
-          dataRows.forEach(row => {
-            const cells = row.querySelectorAll("td");
-            if (cells.length < headers.length) return;
+          for (let i = 2; i < rows.length; i++) {
+            const cells = rows[i].querySelectorAll("td");
+            if (cells.length < headers.length) continue;
             let rowObj = {};
             cells.forEach((cell, index) => {
-              // Se houver um link, utiliza o atributo href; caso contrário, o texto da célula
               const link = cell.querySelector("a");
               if (link) {
                 rowObj[headers[index]] = link.getAttribute("href");
@@ -276,9 +266,7 @@
               }
             });
             allData.push(rowObj);
-          });
-          
-          // Atualiza os filtros, a tabela e o resumo
+          }
           updateFilters(allData);
           renderTable(allData);
           renderSummary(allData);
