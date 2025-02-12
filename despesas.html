@@ -45,7 +45,7 @@
       border-radius: 4px;
       margin-right: 20px;
     }
-    /* Botão de Impressão – exibido apenas em tela (não na impressão) */
+    /* Botão de Impressão – exibido apenas em tela */
     #print-btn {
       font-size: 20px;
       background: none;
@@ -100,21 +100,10 @@
       color: #00eaff;
       text-shadow: 0 0 8px #00eaff, 0 0 15px #00eaff;
     }
-    /* Estilo para impressão – elementos com classe print-only serão exibidos somente na impressão */
-    .print-only { display: none; }
-    /* Elementos marcados como no-print serão ocultados na impressão */
+    /* Elementos que serão ocultados na impressão */
     .no-print { }
-    
-    @media print {
-      /* Oculta os filtros, o botão de impressão e o total que são exibidos em tela */
-      #filter-container, #total-container, .no-print { display: none !important; }
-      /* Exibe os elementos destinados apenas à impressão */
-      .print-only { display: block !important; }
-      /* Oculta as colunas com a classe no-print (para as colunas Comprovante pgto e Recibo/NF) */
-      .no-print { display: none !important; }
-      /* Ajusta margens e outros estilos se necessário para a impressão */
-      table { border: 1px solid #000; }
-    }
+    /* Elementos que serão exibidos apenas na impressão */
+    .print-only { display: none; }
     
     /* Estilos para o cabeçalho e rodapé de impressão */
     #print-header, #print-footer {
@@ -123,12 +112,34 @@
       margin: 10px 0;
       font-size: 14px;
     }
+    
+    /* Regras específicas para impressão */
+    @media print {
+      @page { size: landscape; }
+      
+      /* Diminui o tamanho das fontes na impressão */
+      body { font-size: 10pt; }
+      h1 { font-size: 16pt; }
+      table, th, td { font-size: 8pt; }
+      
+      /* Oculta os elementos que não devem ser impressos */
+      #filter-container, #total-container, #print-btn, footer { display: none !important; }
+      
+      /* Exibe os elementos destinados somente à impressão */
+      .print-only { display: block !important; }
+      
+      /* Oculta as colunas com a classe no-print (para Comprovante pgto e Recibo/NF) */
+      .no-print { display: none !important; }
+      
+      /* Ajusta margens e espaçamentos, se necessário */
+      table { border: 1px solid #000; }
+    }
   </style>
 </head>
 <body>
   <h1>Relatório de Despesas - Babylon Delicatessen</h1>
   
-  <!-- Área dos filtros -->
+  <!-- Área dos filtros (exibidos somente em tela) -->
   <div id="filter-container" class="no-print">
     <!-- Linha 1: Filtros de Data -->
     <div id="filter-date">
@@ -164,13 +175,8 @@
     </div>
   </div>
   
-  <!-- Elementos destinados apenas à impressão -->
+  <!-- Cabeçalho de impressão (apenas na impressão) -->
   <div id="print-header" class="print-only"></div>
-  
-  <!-- Campo para exibir o total de "Valor" em tela (não será impresso) -->
-  <div id="total-container" class="no-print">
-    Total Valor Pago: R$ 0,00
-  </div>
   
   <!-- Container responsivo para a tabela -->
   <div class="table-responsive">
@@ -180,7 +186,7 @@
     </table>
   </div>
   
-  <!-- Rodapé de impressão -->
+  <!-- Rodapé de impressão (apenas na impressão) -->
   <div id="print-footer" class="print-only"></div>
   
   <footer class="no-print">
@@ -191,7 +197,7 @@
     // URL da página publicada do Google Sheets
     const publishedHtmlUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true";
     
-    // Conjuntos para armazenar valores únicos para os filtros
+    // Conjuntos para armazenar os valores únicos (para os filtros)
     const uniqueMonths = new Set();
     const uniqueYears = new Set();
     const uniqueCategories = new Set();
@@ -199,14 +205,14 @@
     const uniqueCredor = new Set();
     const uniquePagoPor = new Set();
     
-    // Variáveis globais para os índices das colunas (após mapeamento) na tabela final
+    // Variáveis globais para os índices (após mapeamento) na tabela final
     let idxDataFinal = -1,
         idxCategoriaFinal = -1,
         idxFormaFinal = -1,
         idxCredorFinal = -1,
         idxPagoFinal = -1;
     
-    // Função para atualizar o total (soma dos valores) baseado nas linhas visíveis
+    // Atualiza o total (soma dos valores) baseado nas linhas visíveis
     function updateTotalSum() {
       let total = 0;
       const tbodyRows = document.querySelectorAll("#sheet-table tbody tr");
@@ -220,7 +226,7 @@
       document.getElementById("total-container").textContent = "Total Valor Pago: " + formattedTotal;
     }
     
-    // Função para atualizar os dropdowns de filtro com base nas linhas atualmente visíveis
+    // Atualiza os dropdowns de filtro com base nas linhas atualmente visíveis
     function updateFilterDropdowns() {
       const visibleRows = Array.from(document.querySelectorAll("#sheet-table tbody tr"))
                                 .filter(row => row.style.display !== "none");
@@ -297,7 +303,7 @@
       }
     }
     
-    // Função que aplica os filtros combinados e atualiza a tabela e os dropdowns
+    // Aplica os filtros combinados e atualiza a tabela e os dropdowns
     function applyFilter() {
       const selectedYear = document.getElementById("filter-year").value;
       const selectedMonth = document.getElementById("filter-month").value;
@@ -309,7 +315,7 @@
       const tbodyRows = document.querySelectorAll("#sheet-table tbody tr");
       tbodyRows.forEach(function(row) {
         let show = true;
-        // Filtro por Data (Ano e Mês)
+        // Filtragem por Data (Ano e Mês)
         if (idxDataFinal !== -1) {
           let cell = row.children[idxDataFinal];
           if (cell) {
@@ -323,7 +329,7 @@
             }
           }
         }
-        // Filtro por Categoria
+        // Filtragem por Categoria
         if (idxCategoriaFinal !== -1) {
           let cell = row.children[idxCategoriaFinal];
           if (cell) {
@@ -331,7 +337,7 @@
             if (selectedCategoria !== "all" && text !== selectedCategoria) show = false;
           }
         }
-        // Filtro por Forma de Pgto
+        // Filtragem por Forma de Pgto
         if (idxFormaFinal !== -1) {
           let cell = row.children[idxFormaFinal];
           if (cell) {
@@ -339,7 +345,7 @@
             if (selectedForma !== "all" && text !== selectedForma) show = false;
           }
         }
-        // Filtro por Credor
+        // Filtragem por Credor
         if (idxCredorFinal !== -1) {
           let cell = row.children[idxCredorFinal];
           if (cell) {
@@ -347,7 +353,7 @@
             if (selectedCredor !== "all" && text !== selectedCredor) show = false;
           }
         }
-        // Filtro por Pago Por
+        // Filtragem por Pago Por
         if (idxPagoFinal !== -1) {
           let cell = row.children[idxPagoFinal];
           if (cell) {
@@ -362,7 +368,7 @@
       updateFilterDropdowns();
     }
     
-    // Adiciona os listeners para disparar a filtragem quando qualquer dropdown for alterado
+    // Adiciona listeners para disparar a filtragem quando qualquer dropdown for alterado
     function addFilterListeners() {
       document.getElementById("filter-year").addEventListener("change", applyFilter);
       document.getElementById("filter-month").addEventListener("change", applyFilter);
@@ -372,7 +378,7 @@
       document.getElementById("filter-pago").addEventListener("change", applyFilter);
     }
     
-    // Atualiza o cabeçalho e o rodapé de impressão com os filtros atuais e data/hora
+    // Atualiza o cabeçalho e rodapé de impressão com os filtros utilizados, total e data/hora
     function updatePrintInfo() {
       const year = document.getElementById("filter-year").value;
       const month = document.getElementById("filter-month").value;
@@ -380,6 +386,7 @@
       const forma = document.getElementById("filter-forma").value;
       const credor = document.getElementById("filter-credor").value;
       const pago = document.getElementById("filter-pago").value;
+      const totalText = document.getElementById("total-container").textContent;
       const printHeader = document.getElementById("print-header");
       printHeader.innerHTML = "<strong>Filtros utilizados:</strong> " +
         "Ano: " + (year === "all" ? "Todos" : year) + ", " +
@@ -387,7 +394,8 @@
         "Categoria: " + (categoria === "all" ? "Todos" : categoria) + ", " +
         "Forma de Pgto: " + (forma === "all" ? "Todos" : forma) + ", " +
         "Credor: " + (credor === "all" ? "Todos" : credor) + ", " +
-        "Pago Por: " + (pago === "all" ? "Todos" : pago);
+        "Pago Por: " + (pago === "all" ? "Todos" : pago) +
+        "<br/><strong>" + totalText + "</strong>";
       
       const printFooter = document.getElementById("print-footer");
       const now = new Date();
@@ -395,6 +403,7 @@
     }
     window.addEventListener("beforeprint", updatePrintInfo);
     
+    // Carrega os dados da planilha e processa a tabela
     fetch(publishedHtmlUrl)
       .then(response => response.text())
       .then(htmlText => {
@@ -411,7 +420,7 @@
           return;
         }
         
-        // --- Processa o cabeçalho (linha 2 – índice 1) ---
+        // Processa o cabeçalho (linha 2 – índice 1)
         let headerCells = Array.from(rows[1].querySelectorAll("td, th"));
         let useNumbering = false;
         if (headerCells.length > 0) {
@@ -487,7 +496,7 @@
         idxCredorFinal = displayHeaders.findIndex(h => h === "Credor");
         idxPagoFinal = displayHeaders.findIndex(h => h === "Pago Por");
         
-        // --- Processa as linhas de dados (a partir da linha 3 – índice 2) ---
+        // Processa as linhas de dados (a partir da linha 3 – índice 2)
         const tbody = document.querySelector("#sheet-table tbody");
         for (let i = 2; i < rows.length; i++) {
           let cells = Array.from(rows[i].querySelectorAll("td"));
@@ -566,7 +575,7 @@
           tbody.appendChild(tr);
         }
         
-        // --- Popula os dropdowns de filtro com os valores únicos (para todos os dados) ---
+        // Popula os dropdowns com os valores únicos (para todos os dados)
         function populateAllDropdowns() {
           // Para Ano
           const filterYear = document.getElementById("filter-year");
