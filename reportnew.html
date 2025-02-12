@@ -42,7 +42,7 @@
       border-radius: 4px;
       margin-right: 20px;
     }
-    /* Botão de Impressão com ação: window.print() */
+    /* Botão de Impressão */
     #print-btn {
       font-size: 20px;
       background: none;
@@ -51,7 +51,7 @@
       cursor: pointer;
       margin-left: 10px;
     }
-    /* Total Valor Pago exibido em tela */
+    /* Total Valor Pago exibido em tela (acima da tabela) */
     #total-container {
       width: 90%;
       margin: 10px auto;
@@ -59,14 +59,14 @@
       color: white;
       font-size: 18px;
     }
-    /* Print summary: informações exibidas apenas na impressão */
+    /* Print summary: resumo dos filtros e total exibido apenas na impressão */
     #print-summary {
       display: none;
       margin: 10px 5%;
       font-size: 16px;
       text-align: left;
     }
-    /* Container responsivo para a tabela */
+    /* Tabela responsiva */
     .table-responsive {
       width: 90%;
       margin: 20px auto;
@@ -89,7 +89,7 @@
       white-space: nowrap;
       position: relative;
     }
-    /* Ícones de ordenação (mini filtros) */
+    /* Estilo para os mini filtros (ícones de ordenação) */
     .sort-icon {
       cursor: pointer;
       user-select: none;
@@ -112,19 +112,17 @@
       margin-bottom: 20px;
       color: white;
     }
-    /* Rodapé centralizado */
+    /* Rodapé centralizado (para visualização em tela) */
     footer {
       text-align: center;
       margin: 20px auto;
       font-size: 14px;
       color: white;
     }
-    
-    /* Oculta na web as colunas "Categoria", "Forma de Pgto" e "Pago Por" */
+    /* Oculta na visualização web as colunas "Categoria", "Forma de Pgto" e "Pago Por" */
     @media screen {
       .hide-web { display: none; }
     }
-    
     /* Regras para impressão */
     @media print {
       body {
@@ -134,11 +132,11 @@
       h1 {
         color: black !important;
       }
-      /* Exibe o print summary */
+      /* Exibe o resumo de filtros e total */
       #print-summary {
         display: block;
       }
-      /* Oculta filtros, total exibido em tela e outros elementos não impressos */
+      /* Oculta os filtros e o total exibido em tela */
       #filter-container, #total-container, .no-print {
         display: none !important;
       }
@@ -150,6 +148,13 @@
         border: 1px solid #000;
       }
       footer { text-align: center; }
+      /* Print footer: data/hora e mensagem no rodapé, alinhado à direita com letras pequenas */
+      #print-footer {
+        display: block;
+        text-align: right;
+        font-size: 10px;
+        margin-top: 10px;
+      }
     }
   </style>
 </head>
@@ -158,7 +163,6 @@
   
   <!-- Área dos filtros (apenas para visualização em tela) -->
   <div id="filter-container" class="no-print">
-    <!-- Filtros de Data -->
     <div id="filter-date">
       <label for="filter-year">Ano:</label>
       <select id="filter-year">
@@ -168,10 +172,9 @@
       <select id="filter-month">
         <option value="all">Todos</option>
       </select>
-      <!-- Botão de Impressão que dispara a impressão padrão -->
+      <!-- Botão de impressão -->
       <button id="print-btn" onclick="window.print()" title="Imprimir (CTRL+P)">🖨️</button>
     </div>
-    <!-- Filtros adicionais -->
     <div id="filter-other">
       <label for="filter-categoria">Categoria:</label>
       <select id="filter-categoria">
@@ -190,19 +193,18 @@
         <option value="all">Todos</option>
       </select>
     </div>
-    <!-- Filtro de Pesquisa -->
     <div id="filter-search-container">
       <label for="filter-search">Pesquisar:</label>
       <input type="text" id="filter-search" placeholder="Digite para pesquisar..." />
     </div>
   </div>
   
-  <!-- Total Valor Pago (exibido na tela, acima da tabela) -->
+  <!-- Total Valor Pago (exibido em tela, acima da tabela) -->
   <div id="total-container" class="no-print">
     Total Valor Pago: R$ 0,00
   </div>
   
-  <!-- Elemento exibido apenas na impressão (resumo dos filtros e total) -->
+  <!-- Resumo para impressão (filtros selecionados e total) -->
   <div id="print-summary" class="print-only"></div>
   
   <!-- Tabela -->
@@ -212,6 +214,9 @@
       <tbody></tbody>
     </table>
   </div>
+  
+  <!-- Print footer: data/hora e mensagem, exibido somente na impressão -->
+  <div id="print-footer" class="print-only"></div>
   
   <footer class="no-print">
     <p>© 2025 Babylon Delicatessen. Todos os direitos reservados.</p>
@@ -476,6 +481,15 @@
     }
     window.addEventListener("beforeprint", updatePrintSummary);
     
+    /***************** Atualiza o print footer (data/hora e mensagem) *****************/
+    function updatePrintFooter() {
+      let now = new Date();
+      let nowStr = now.toLocaleString("pt-BR");
+      document.getElementById("print-footer").innerHTML =
+        nowStr + "<br>© 2025 Babylon Delicatessen. Documento confidencial e para uso interno.";
+    }
+    window.addEventListener("beforeprint", updatePrintFooter);
+    
     /***************** Processa a tabela a partir dos dados do Google Sheets *****************/
     fetch(publishedHtmlUrl)
       .then(response => response.text())
@@ -503,7 +517,7 @@
             headerCells = headerCells.slice(1);
           }
         }
-        // Colunas a excluir (não desejadas)
+        // Colunas a excluir
         const columnsToExclude = [
           "carimbo de data/hora",
           "[form publisher] edit url",
@@ -551,7 +565,7 @@
         /***** Cria o cabeçalho da tabela *****/
         const thead = document.querySelector("#sheet-table thead");
         const headerTr = document.createElement("tr");
-        // Lista de colunas permitidas para impressão
+        // Colunas permitidas para impressão
         const allowedPrint = ["Data", "Credor", "Descrição", "Valor"];
         displayHeaders.forEach((header, j) => {
           const th = document.createElement("th");
@@ -561,7 +575,7 @@
             let sortIcon = document.createElement("span");
             sortIcon.classList.add("sort-icon");
             if (header === "Data") {
-              // Padrão: ordenação descendente (mais atual no topo)
+              // Padrão: ordenação descendente para Data (data atual no topo)
               sortIcon.textContent = " ▼";
               sortIcon.dataset.order = "desc";
             } else {
@@ -583,7 +597,7 @@
             });
             th.appendChild(sortIcon);
           }
-          // Para impressão: somente mostra as colunas permitidas
+          // Para impressão: somente as colunas permitidas
           if (allowedPrint.indexOf(header) !== -1) {
             th.classList.add("print-allowed");
           } else {
