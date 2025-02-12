@@ -117,27 +117,26 @@
   <script>
     // URL da planilha (versão pubhtml)
     var publicSpreadsheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true';
-
+    
     var allData = [];   // Dados mapeados (a partir da linha 3)
     var headers = [];   // Cabeçalhos definidos na linha 2
 
     /**
      * Extrai o ano e o mês de uma data no formato dd/mm/aaaa.
-     * Retorna um objeto { year, month } ou {year:null, month:null} se inválido.
+     * Retorna um objeto {year, month} ou {year:null, month:null} se inválido.
      */
     function getYearMonth(dateString) {
       var parts = dateString.split('/');
-      if (parts.length !== 3) return { year: null, month: null };
+      if(parts.length !== 3) return { year: null, month: null };
       var day   = parseInt(parts[0], 10);
       var month = parseInt(parts[1], 10);
       var year  = parseInt(parts[2], 10);
-      if (isNaN(day) || isNaN(month) || isNaN(year)) return { year: null, month: null };
+      if(isNaN(day) || isNaN(month) || isNaN(year)) return { year: null, month: null };
       return { year: year, month: month };
     }
 
     /**
      * Preenche os dropdowns de Ano e Mês com os valores disponíveis no campo "Data da Despesa".
-     * Os dropdowns já possuem um placeholder ("Selecione Ano"/"Selecione Mês") e uma opção "Todos".
      */
     function updateFilters(data) {
       var yearSet = new Set();
@@ -145,12 +144,12 @@
       
       data.forEach(function(row) {
         var dateInfo = getYearMonth(row['Data da Despesa'] || '');
-        if (dateInfo.year) yearSet.add(dateInfo.year);
-        if (dateInfo.month) monthSet.add(dateInfo.month);
+        if(dateInfo.year) yearSet.add(dateInfo.year);
+        if(dateInfo.month) monthSet.add(dateInfo.month);
       });
       
       var yearFilter = document.getElementById('yearFilter');
-      // Mantém os dois primeiros options (placeholder e "Todos")
+      // Mantém o placeholder e a opção "Todos"
       yearFilter.innerHTML = '<option value="" disabled selected>Selecione Ano</option><option value="all">Todos</option>';
       Array.from(yearSet).sort().forEach(function(year) {
         yearFilter.innerHTML += '<option value="' + year + '">' + year + '</option>';
@@ -167,8 +166,9 @@
 
     /**
      * Renderiza a tabela:
-     * - Insere os cabeçalhos (linha 2 da planilha) na tag <thead>.
+     * - Insere os cabeçalhos (linha 2 da planilha) no <thead>.
      * - Insere as linhas dos dados (a partir da linha 3) no <tbody>.
+     * Para os campos de link, exibe um emoji que, ao ser clicado, baixa o arquivo.
      */
     function renderTable(data) {
       var thead = document.querySelector('#expensesTable thead tr');
@@ -182,7 +182,14 @@
       data.forEach(function(row) {
         var tr = document.createElement('tr');
         headers.forEach(function(header) {
-          tr.innerHTML += '<td>' + (row[header] || '') + '</td>';
+          var cellContent = row[header] || '';
+          // Se o campo for um link, substitui pelo emoji apropriado
+          if (header === 'Anexar Comprovante de Pagamento' && cellContent.trim() !== '') {
+            cellContent = '<a href="' + cellContent + '" download target="_blank">📎</a>';
+          } else if (header === 'Anexar Recibo ou Nota Fiscal' && cellContent.trim() !== '') {
+            cellContent = '<a href="' + cellContent + '" download target="_blank">🧾</a>';
+          }
+          tr.innerHTML += '<td>' + cellContent + '</td>';
         });
         tbody.appendChild(tr);
       });
@@ -198,7 +205,7 @@
       var overallTotal = 0;
       data.forEach(function(row) {
         var categoria = row['Selecione a categoria'] || 'Sem Categoria';
-        // Converte "Valor Pago" para número (substitui vírgula por ponto)
+        // Converte "Valor Pago" para número (substituindo vírgula por ponto)
         var valor = parseFloat((row['Valor Pago'] || '0').replace(',', '.')) || 0;
         overallTotal += valor;
         summary[categoria] = (summary[categoria] || 0) + valor;
@@ -214,7 +221,6 @@
 
     /**
      * Aplica os filtros de Ano e Mês e atualiza a tabela e o resumo.
-     * Se o dropdown estiver com o placeholder (valor "" ou "all"), não filtra.
      */
     function applyFilters() {
       var yearFilter = document.getElementById('yearFilter').value;
@@ -230,7 +236,7 @@
       renderSummary(filteredData);
     }
 
-    // Registra os eventos dos filtros
+    // Registra os eventos dos dropdowns
     document.getElementById('yearFilter').addEventListener('change', applyFilters);
     document.getElementById('monthFilter').addEventListener('change', applyFilters);
 
@@ -251,16 +257,16 @@
             console.error("Dados insuficientes na planilha.");
             return;
           }
-          // Debug: visualizar rawData no console (opcional)
+          // Para depuração, pode-se habilitar o log dos dados brutos:
           // console.log("Raw data:", sheet.raw);
           
-          // Linha 2 (índice 1) será o cabeçalho
+          // A segunda linha (índice 1) será o cabeçalho
           headers = sheet.raw[1];
-          // A partir da linha 3 (índice 2) são os dados
+          // As linhas a partir da terceira (índice 2) são os dados
           allData = sheet.raw.slice(2).map(function(row) {
             var obj = {};
             headers.forEach(function(header, index) {
-              obj[header] = row[index];
+              obj[header] = row[index] || '';
             });
             return obj;
           });
