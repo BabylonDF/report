@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Babylon Delicatessen - Despesas</title>
   
-  <!-- Fonte Orbitron para o efeito futurista -->
+  <!-- Fonte Orbitron para efeito futurista -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
   
   <style>
@@ -112,12 +112,25 @@
           return;
         }
         
-        // Processa o cabeçalho: ignora a primeira célula (numeração)
+        // Processa o cabeçalho (segunda linha - índice 1)
         const headerRow = rows[1];
         const headerCells = headerRow.querySelectorAll("td, th");
-        const headers = Array.from(headerCells).slice(1).map(cell => cell.textContent.trim());
+        const headerCount = headerCells.length;
         
-        // Insere o cabeçalho na tabela da página
+        // Verifica o número de células na primeira linha de dados (linha 3 - índice 2)
+        const firstDataRow = rows[2];
+        const dataCells = firstDataRow ? firstDataRow.querySelectorAll("td") : [];
+        const dataCellsCount = dataCells.length;
+        
+        // Se o cabeçalho tem uma célula a mais, presume-se que seja a numeração de linha
+        const useExtraColumn = headerCount > dataCellsCount;
+        
+        // Monta o array de cabeçalhos: se houver célula extra, descarta apenas no cabeçalho
+        const headers = useExtraColumn ? 
+          Array.from(headerCells).slice(1).map(cell => cell.textContent.trim()) : 
+          Array.from(headerCells).map(cell => cell.textContent.trim());
+        
+        // Insere o cabeçalho na tabela
         const thead = document.querySelector("#sheet-table thead");
         const headerTr = document.createElement("tr");
         headers.forEach(header => {
@@ -127,23 +140,27 @@
         });
         thead.appendChild(headerTr);
         
-        // Identifica os índices das colunas que deverão exibir o emoji para download
+        // Identifica os índices das colunas de anexo com base no array de cabeçalhos
         let idxComprovante = headers.findIndex(text => text.toLowerCase().includes("anexar comprovante de pagamento"));
         let idxRecibo = headers.findIndex(text => text.toLowerCase().includes("anexar recibo ou nota fiscal"));
         
-        // Processa os dados a partir da terceira linha (índice 2) ignorando a primeira célula de cada linha
+        // Processa os dados a partir da terceira linha (índice 2)
         const tbody = document.querySelector("#sheet-table tbody");
         for (let i = 2; i < rows.length; i++) {
           const cells = rows[i].querySelectorAll("td");
           if (!cells.length) continue;
-          // Ignora a primeira célula (numeração) de cada linha
-          const rowCells = Array.from(cells).slice(1);
+          // Se o cabeçalho possuía uma célula extra (numeração), usa todas as células dos dados;
+          // caso contrário, utiliza todas as células.
+          const rowCells = useExtraColumn ? Array.from(cells).slice(1) : Array.from(cells);
+          // Se por algum motivo a quantidade de células for diferente do número de cabeçalhos, continua para evitar erros.
+          if (rowCells.length !== headers.length) continue;
+          
           const tr = document.createElement("tr");
-          for (let j = 0; j < rowCells.length; j++) {
+          rowCells.forEach((cell, j) => {
             const td = document.createElement("td");
-            // Se for a coluna de anexo, substitui pelo emoji com link
+            // Para as colunas de anexo, exibe o emoji se houver link
             if (j === idxComprovante || j === idxRecibo) {
-              const aTag = rowCells[j].querySelector("a");
+              const aTag = cell.querySelector("a");
               if (aTag && aTag.href) {
                 const a = document.createElement("a");
                 a.href = aTag.href;
@@ -155,10 +172,10 @@
                 td.textContent = "";
               }
             } else {
-              td.textContent = rowCells[j].textContent.trim();
+              td.textContent = cell.textContent.trim();
             }
             tr.appendChild(td);
-          }
+          });
           tbody.appendChild(tr);
         }
       })
