@@ -24,6 +24,10 @@
       margin: 20px auto;
       text-align: center;
     }
+    /* Agrupamento em duas linhas para os filtros */
+    #filter-date, #filter-other {
+      margin-bottom: 10px;
+    }
     #filter-container label {
       margin-right: 5px;
       color: #00eaff;
@@ -36,7 +40,6 @@
       color: #00eaff;
       border-radius: 4px;
       margin-right: 20px;
-      margin-bottom: 10px;
     }
     #total-container {
       width: 90%;
@@ -97,32 +100,38 @@
 <body>
   <h1>Relatório de Despesas - Babylon Delicatessen</h1>
   
-  <!-- Área dos filtros (dropdowns separados para Mês, Ano, Categoria, Forma de Pgto, Credor e Pago Por) -->
+  <!-- Área dos filtros -->
   <div id="filter-container">
-    <label for="filter-month">Mês:</label>
-    <select id="filter-month">
-      <option value="all">Todos</option>
-    </select>
-    <label for="filter-year">Ano:</label>
-    <select id="filter-year">
-      <option value="all">Todos</option>
-    </select>
-    <label for="filter-categoria">Categoria:</label>
-    <select id="filter-categoria">
-      <option value="all">Todos</option>
-    </select>
-    <label for="filter-forma">Forma de Pgto:</label>
-    <select id="filter-forma">
-      <option value="all">Todos</option>
-    </select>
-    <label for="filter-credor">Credor:</label>
-    <select id="filter-credor">
-      <option value="all">Todos</option>
-    </select>
-    <label for="filter-pago">Pago Por:</label>
-    <select id="filter-pago">
-      <option value="all">Todos</option>
-    </select>
+    <!-- Linha 1: Filtros de Data -->
+    <div id="filter-date">
+      <label for="filter-month">Mês:</label>
+      <select id="filter-month">
+        <option value="all">Todos</option>
+      </select>
+      <label for="filter-year">Ano:</label>
+      <select id="filter-year">
+        <option value="all">Todos</option>
+      </select>
+    </div>
+    <!-- Linha 2: Filtros para Categoria, Forma de Pgto, Credor e Pago Por -->
+    <div id="filter-other">
+      <label for="filter-categoria">Categoria:</label>
+      <select id="filter-categoria">
+        <option value="all">Todos</option>
+      </select>
+      <label for="filter-forma">Forma de Pgto:</label>
+      <select id="filter-forma">
+        <option value="all">Todos</option>
+      </select>
+      <label for="filter-credor">Credor:</label>
+      <select id="filter-credor">
+        <option value="all">Todos</option>
+      </select>
+      <label for="filter-pago">Pago Por:</label>
+      <select id="filter-pago">
+        <option value="all">Todos</option>
+      </select>
+    </div>
   </div>
   
   <!-- Campo para exibir o total de "Valor Pago" -->
@@ -238,7 +247,7 @@
       updateTotalSum();
     }
     
-    // Adiciona listener para disparar a filtragem quando qualquer dropdown for alterado
+    // Adiciona listeners para disparar a filtragem quando qualquer dropdown for alterado
     function addFilterListeners() {
       document.getElementById("filter-month").addEventListener("change", applyFilter);
       document.getElementById("filter-year").addEventListener("change", applyFilter);
