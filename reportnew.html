@@ -50,7 +50,7 @@
       border-radius: 4px;
       margin-right: 20px;
     }
-    /* Botão de Impressão – exibe o emoji com tooltip para usar CTRL+P */
+    /* Botão de Impressão – agora com comando onclick para window.print() */
     #print-btn {
       font-size: 20px;
       background: none;
@@ -87,6 +87,7 @@
       background-color: #111;
       font-size: 1.1rem;
       white-space: nowrap;
+      position: relative;
     }
     tbody td {
       padding: 10px;
@@ -135,8 +136,8 @@
       <select id="filter-month">
         <option value="all">Todos</option>
       </select>
-      <!-- Botão de Impressão -->
-      <button id="print-btn" title="Pressione CTRL+P para imprimir">🖨️</button>
+      <!-- Botão de Impressão com comando para window.print() -->
+      <button id="print-btn" onclick="window.print()" title="Imprimir (CTRL+P)">🖨️</button>
     </div>
     <!-- Linha 2: Filtros para Categoria, Forma de Pgto, Credor e Pago Por -->
     <div id="filter-other">
@@ -376,6 +377,27 @@
       document.getElementById("filter-search").addEventListener("input", applyFilter);
     }
     
+    // Função para ordenar a tabela pela coluna "Data"
+    function sortTableByDate(order) {
+      const tbody = document.querySelector("#sheet-table tbody");
+      let rows = Array.from(tbody.querySelectorAll("tr"));
+      rows.sort((a, b) => {
+        // Obtém os textos das células da coluna "Data"
+        let dateA = a.children[idxDataFinal].textContent.trim();
+        let dateB = b.children[idxDataFinal].textContent.trim();
+        // Função para converter dd/mm/aaaa em objeto Date
+        function parseDate(str) {
+          const parts = str.split("/");
+          return new Date(parts[2], parts[1] - 1, parts[0]);
+        }
+        let dA = parseDate(dateA);
+        let dB = parseDate(dateB);
+        return order === "asc" ? dA - dB : dB - dA;
+      });
+      // Reanexa as linhas ordenadas no tbody
+      rows.forEach(row => tbody.appendChild(row));
+    }
+    
     fetch(publishedHtmlUrl)
       .then(response => response.text())
       .then(htmlText => {
@@ -453,6 +475,24 @@
         displayHeaders.forEach(header => {
           const th = document.createElement("th");
           th.textContent = header;
+          // Se for a coluna "Data", adiciona o mini filtro de ordenação
+          if (header === "Data") {
+            let sortIcon = document.createElement("span");
+            sortIcon.textContent = " ▼"; // padrão: descendente (maior para menor)
+            sortIcon.style.cursor = "pointer";
+            sortIcon.style.userSelect = "none";
+            sortIcon.addEventListener("click", function() {
+              // Alterna entre ordem ascendente e descendente
+              if (sortIcon.textContent.includes("▼")) {
+                sortIcon.textContent = " ▲";
+                sortTableByDate("asc");
+              } else {
+                sortIcon.textContent = " ▼";
+                sortTableByDate("desc");
+              }
+            });
+            th.appendChild(sortIcon);
+          }
           // Adiciona a classe "no-print" para as colunas "Comprovante pgto" e "Recibo/NF"
           if (header.toLowerCase().includes("comprovante") || header.toLowerCase().includes("recibo")) {
             th.classList.add("no-print");
@@ -623,6 +663,8 @@
         populateAllDropdowns();
         addFilterListeners();
         applyFilter();
+        // Ordena por padrão a coluna "Data" em ordem decrescente (maior para menor)
+        sortTableByDate("desc");
         
       })
       .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
