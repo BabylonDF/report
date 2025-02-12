@@ -28,6 +28,22 @@
       border-radius: 5px;
       width: 300px;
       text-align: center;
+      font-family: sans-serif;
+    }
+    .modal-content h1 {
+      margin-bottom: 5px;
+      font-size: 1.5em;
+      color: #333;
+    }
+    .modal-content p {
+      margin-bottom: 15px;
+      font-size: 0.9em;
+      color: #555;
+    }
+    .modal-content h2 {
+      margin-bottom: 10px;
+      font-size: 1.2em;
+      color: #333;
     }
     .modal-content input {
       width: 90%;
@@ -35,6 +51,7 @@
       margin: 5px 0;
       border: 1px solid #ccc;
       border-radius: 4px;
+      font-size: 0.9em;
     }
     .modal-content button {
       padding: 8px 16px;
@@ -44,10 +61,12 @@
       color: #fff;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 0.9em;
     }
     .error {
       color: red;
       font-size: 0.9em;
+      margin-top: 5px;
     }
     
     /* Resto do CSS da página */
@@ -71,10 +90,7 @@
       color: white; border-radius: 4px; margin-right: 20px;
     }
     /* Botão de Impressão */
-    #print-btn {
-      font-size: 20px; background: none; border: none; color: white;
-      cursor: pointer; margin-left: 10px;
-    }
+    #print-btn { font-size: 20px; background: none; border: none; color: white; cursor: pointer; margin-left: 10px; }
     /* Total Valor Pago exibido em tela (acima da tabela) */
     #total-container { width: 90%; margin: 10px auto; text-align: right; color: white; font-size: 18px; }
     /* Resumo para impressão */
@@ -99,25 +115,17 @@
       position: relative;
     }
     /* Mini filtros (ícones de ordenação) */
-    .sort-icon {
-      cursor: pointer;
-      user-select: none;
-      font-size: 0.9rem;
-      margin-left: 5px;
-    }
-    tbody td {
-      padding: 10px;
-      border: 1px solid white;
-      text-align: center;
-      white-space: nowrap;
-    }
+    .sort-icon { cursor: pointer; user-select: none; font-size: 0.9rem; margin-left: 5px; }
+    tbody td { padding: 10px; border: 1px solid white; text-align: center; white-space: nowrap; }
     tbody tr:nth-child(even) { background-color: #222; }
     /* Título da página */
     h1 { text-align: center; margin-top: 100px; margin-bottom: 20px; color: white; }
     /* Rodapé centralizado */
     footer { text-align: center; margin: 20px auto; font-size: 14px; color: white; }
+    
     /* Oculta na web as colunas "Categoria", "Forma de Pgto" e "Pago Por" */
     @media screen { .hide-web { display: none; } }
+    
     /* Regras para impressão */
     @media print {
       body { background: white !important; color: black !important; }
@@ -127,6 +135,7 @@
       th.print-hide, td.print-hide { display: none !important; }
       table { border: 1px solid #000; }
       footer { text-align: center; }
+      /* Print footer: data/hora e mensagem no rodapé */
       #print-footer {
         display: block;
         text-align: right;
@@ -140,11 +149,16 @@
   <!-- Modal de Login -->
   <div id="login-modal" class="modal">
     <div class="modal-content">
+      <h1>Babylon Delicatessen</h1>
+      <p>Área restrita à administração</p>
       <h2>Login</h2>
       <input type="text" id="username" placeholder="Usuário" />
       <input type="password" id="password" placeholder="Senha" />
       <button id="login-btn">Entrar</button>
       <div id="login-error" class="error"></div>
+      <p style="margin-top: 15px; font-size: 0.9em; color: #333;">
+        Dúvidas? Entre em contato com <a href="https://wa.me/5561998198688" target="_blank" style="color: blue; text-decoration: underline;">Marcelo</a>.
+      </p>
     </div>
   </div>
   
@@ -205,7 +219,7 @@
     document.getElementById("login-btn").addEventListener("click", function() {
       var username = document.getElementById("username").value;
       var password = document.getElementById("password").value;
-      // Verificação simples com credenciais hardcoded (modifique conforme necessário)
+      // Credenciais de exemplo: usuário "admin" e senha "123456"
       if(username === "admin" && password === "123456") {
         document.getElementById("login-modal").style.display = "none";
         document.getElementById("page-content").style.display = "block";
