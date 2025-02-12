@@ -5,13 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Babylon Delicatessen - Despesas</title>
   
-  <!-- Importa a fonte Orbitron -->
+  <!-- Fonte Orbitron -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
   
   <style>
-    /* Basic Reset */
+    /* Reset básico */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    
     body {
       font-family: 'Orbitron', sans-serif;
       background-color: black;
@@ -19,88 +18,7 @@
       min-height: 100vh;
       overflow-x: hidden;
     }
-    
-    /* Área dos filtros */
-    #filter-container {
-      width: 90%;
-      margin: 20px auto;
-      text-align: center;
-    }
-    /* Linha 1: Filtros de Data – Ano vem antes do Mês */
-    #filter-date { margin-bottom: 10px; }
-    /* Linha 2: Filtros para Categoria, Forma de Pgto, Credor e Pago Por */
-    #filter-other { margin-bottom: 10px; }
-    
-    #filter-container label {
-      margin-right: 5px;
-      color: #00eaff;
-    }
-    
-    #filter-container select {
-      padding: 5px;
-      font-size: 16px;
-      border: 2px solid #00eaff;
-      background-color: #111;
-      color: #00eaff;
-      border-radius: 4px;
-      margin-right: 20px;
-    }
-    
-    /* Botão de Impressão – exibido apenas na tela */
-    #print-btn {
-      font-size: 20px;
-      background: none;
-      border: none;
-      color: #00eaff;
-      cursor: pointer;
-      margin-left: 10px;
-    }
-    
-    /* Total exibido em tela */
-    #total-container {
-      width: 90%;
-      margin: 10px auto;
-      text-align: right;
-      color: #00eaff;
-      font-size: 18px;
-    }
-    
-    /* Container responsivo para a tabela */
-    .table-responsive {
-      width: 90%;
-      margin: 20px auto;
-      overflow-x: auto;
-    }
-    
-    /* Tabela com estilo neon azul */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: rgba(0, 0, 0, 0.8);
-      border: 4px solid #00eaff;
-      border-radius: 8px;
-    }
-    
-    thead th {
-      padding: 10px;
-      border: 1px solid #00eaff;
-      text-align: center;
-      background-color: #111;
-      font-size: 1.1rem;
-      white-space: nowrap;
-    }
-    
-    tbody td {
-      padding: 10px;
-      border: 1px solid #00eaff;
-      text-align: center;
-      white-space: nowrap;
-    }
-    
-    tbody tr:nth-child(even) {
-      background-color: #222;
-    }
-    
+    /* Título da página */
     h1 {
       text-align: center;
       margin-top: 100px;
@@ -108,7 +26,60 @@
       color: #00eaff;
       text-shadow: 0 0 8px #00eaff, 0 0 15px #00eaff;
     }
-    
+    /* Área dos filtros (apenas em tela) */
+    #filter-container {
+      width: 90%;
+      margin: 20px auto;
+      text-align: center;
+    }
+    /* Filtros em duas linhas */
+    #filter-date, #filter-other { margin-bottom: 10px; }
+    #filter-container label { margin-right: 5px; color: #00eaff; }
+    #filter-container select {
+      padding: 5px; font-size: 16px;
+      border: 2px solid #00eaff;
+      background-color: #111; color: #00eaff;
+      border-radius: 4px; margin-right: 20px;
+    }
+    /* Botão de impressão (na tela) */
+    #print-btn {
+      font-size: 20px;
+      background: none; border: none;
+      color: #00eaff; cursor: pointer;
+      margin-left: 10px;
+    }
+    /* Total exibido na tela */
+    #total-container {
+      width: 90%;
+      margin: 10px auto;
+      text-align: right;
+      color: #00eaff; font-size: 18px;
+    }
+    /* Tabela responsiva */
+    .table-responsive {
+      width: 90%; margin: 20px auto; overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(0, 0, 0, 0.8);
+      border: 4px solid #00eaff;
+      border-radius: 8px;
+    }
+    thead th {
+      padding: 10px;
+      border: 1px solid #00eaff;
+      text-align: center;
+      background-color: #111; font-size: 1.1rem;
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 10px;
+      border: 1px solid #00eaff;
+      text-align: center;
+      white-space: nowrap;
+    }
+    tbody tr:nth-child(even) { background-color: #222; }
     footer {
       text-align: center;
       padding: 20px;
@@ -116,30 +87,22 @@
       border-top: 4px solid #00eaff;
       margin-top: 40px;
     }
-    
+    /* Elementos que não serão impressos (na tela) */
+    .no-print { }
     /* Elementos que serão exibidos apenas na impressão */
     .print-only { display: none; }
-    
-    /* Elementos que não serão impressos */
-    .no-print { }
-    
-    /* Na impressão, ocultamos os elementos com a classe .no-print
-       e ocultamos as colunas que não devem aparecer no relatório impresso.
-       Apenas as colunas com cabeçalhos "Data", "Credor", "Descrição" e "Valor" serão exibidas.
-    */
+    /* Na impressão, ocultamos os filtros, o total e o rodapé da tela */
     @media print {
       #filter-container, #total-container, footer, .no-print { display: none !important; }
       .print-only { display: block !important; }
+      /* Oculta as colunas não permitidas para impressão */
       .hide-print { display: none !important; }
-      
       table { border: 1px solid #000; }
     }
-    
-    /* Estilos para cabeçalho e rodapé de impressão */
+    /* Cabeçalho e rodapé de impressão */
     #print-header, #print-footer {
       text-align: center;
-      color: black;
-      margin: 10px 0;
+      color: black; margin: 10px 0;
       font-size: 14px;
     }
   </style>
@@ -147,9 +110,8 @@
 <body>
   <h1>Relatório de Despesas - Babylon Delicatessen</h1>
   
-  <!-- Área dos filtros (exibida apenas na tela) -->
+  <!-- Filtros (na tela) -->
   <div id="filter-container" class="no-print">
-    <!-- Linha 1: Filtros de Data -->
     <div id="filter-date">
       <label for="filter-year">Ano:</label>
       <select id="filter-year">
@@ -159,10 +121,8 @@
       <select id="filter-month">
         <option value="all">Todos</option>
       </select>
-      <!-- Botão de Impressão -->
       <button id="print-btn" onclick="window.print()" title="Imprimir relatório">🖨️</button>
     </div>
-    <!-- Linha 2: Filtros para Categoria, Forma de Pgto, Credor e Pago Por -->
     <div id="filter-other">
       <label for="filter-categoria">Categoria:</label>
       <select id="filter-categoria">
@@ -183,6 +143,9 @@
     </div>
   </div>
   
+  <!-- Total (na tela) -->
+  <div id="total-container" class="no-print">Total Valor Pago: R$ 0,00</div>
+  
   <!-- Cabeçalho de impressão -->
   <div id="print-header" class="print-only"></div>
   
@@ -202,10 +165,10 @@
   </footer>
   
   <script>
-    // URL da página publicada do Google Sheets
+    // URL do Google Sheets publicado
     const publishedHtmlUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true";
     
-    // Conjuntos para armazenar os valores únicos dos filtros
+    // Conjuntos para os valores únicos dos filtros
     const uniqueMonths = new Set();
     const uniqueYears = new Set();
     const uniqueCategories = new Set();
@@ -213,66 +176,41 @@
     const uniqueCredor = new Set();
     const uniquePagoPor = new Set();
     
-    // Variáveis globais para os índices finais (após mapeamento) dos filtros
-    let idxDataFinal = -1,
-        idxCategoriaFinal = -1,
-        idxFormaFinal = -1,
-        idxCredorFinal = -1,
-        idxPagoFinal = -1;
+    // Índices finais (após mapeamento) para os filtros na tabela exibida
+    let idxDataFinal = -1, idxCategoriaFinal = -1, idxFormaFinal = -1,
+        idxCredorFinal = -1, idxPagoFinal = -1, idxValorFinal = -1;
     
-    // Atualiza o total exibido (soma dos valores) com base nas linhas visíveis
+    // Atualiza o total exibido (soma dos valores) na página principal
     function updateTotalSum() {
       let total = 0;
-      const tbodyRows = document.querySelectorAll("#sheet-table tbody tr");
-      tbodyRows.forEach(function(row) {
+      document.querySelectorAll("#sheet-table tbody tr").forEach(row => {
         if (row.style.display !== "none") {
-          let valor = parseFloat(row.getAttribute("data-valor-pago") || "0");
-          total += valor;
+          let v = parseFloat(row.getAttribute("data-valor-pago") || "0");
+          total += v;
         }
       });
-      const formattedTotal = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(total);
-      document.getElementById("total-container").textContent = "Total Valor Pago: " + formattedTotal;
+      document.getElementById("total-container").textContent =
+        "Total Valor Pago: " + new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(total);
     }
     
-    // Atualiza as opções dos dropdowns com base nas linhas atualmente visíveis
+    // Atualiza os dropdowns dos filtros com base nas linhas visíveis (filtragem cascata)
     function updateFilterDropdowns() {
       const visibleRows = Array.from(document.querySelectorAll("#sheet-table tbody tr"))
-                                .filter(row => row.style.display !== "none");
-      
-      const yearSet = new Set();
-      const monthSet = new Set();
-      const catSet = new Set();
-      const formaSet = new Set();
-      const credorSet = new Set();
-      const pagoSet = new Set();
-      
+                               .filter(row => row.style.display !== "none");
+      const yearSet = new Set(), monthSet = new Set(),
+            catSet = new Set(), formaSet = new Set(),
+            credorSet = new Set(), pagoSet = new Set();
       visibleRows.forEach(row => {
         if (idxDataFinal !== -1) {
           let dateText = row.children[idxDataFinal].textContent.trim();
           let parts = dateText.split("/");
-          if (parts.length === 3) {
-            yearSet.add(parts[2]);
-            monthSet.add(parts[1]);
-          }
+          if (parts.length === 3) { yearSet.add(parts[2]); monthSet.add(parts[1]); }
         }
-        if (idxCategoriaFinal !== -1) {
-          let text = row.children[idxCategoriaFinal].textContent.trim();
-          catSet.add(text);
-        }
-        if (idxFormaFinal !== -1) {
-          let text = row.children[idxFormaFinal].textContent.trim();
-          formaSet.add(text);
-        }
-        if (idxCredorFinal !== -1) {
-          let text = row.children[idxCredorFinal].textContent.trim();
-          credorSet.add(text);
-        }
-        if (idxPagoFinal !== -1) {
-          let text = row.children[idxPagoFinal].textContent.trim();
-          pagoSet.add(text);
-        }
+        if (idxCategoriaFinal !== -1) { catSet.add(row.children[idxCategoriaFinal].textContent.trim()); }
+        if (idxFormaFinal !== -1) { formaSet.add(row.children[idxFormaFinal].textContent.trim()); }
+        if (idxCredorFinal !== -1) { credorSet.add(row.children[idxCredorFinal].textContent.trim()); }
+        if (idxPagoFinal !== -1) { pagoSet.add(row.children[idxPagoFinal].textContent.trim()); }
       });
-      
       updateDropdown("filter-year", yearSet);
       updateDropdown("filter-month", monthSet);
       updateDropdown("filter-categoria", catSet);
@@ -286,97 +224,63 @@
       const select = document.getElementById(id);
       const currentValue = select.value;
       select.innerHTML = "";
-      const defaultOption = document.createElement("option");
-      defaultOption.value = "all";
-      defaultOption.textContent = "Todos";
-      select.appendChild(defaultOption);
-      
+      const defOpt = document.createElement("option");
+      defOpt.value = "all"; defOpt.textContent = "Todos";
+      select.appendChild(defOpt);
       let arr = Array.from(setValues);
-      if (id === "filter-year" || id === "filter-month") {
+      if (id === "filter-year" || id === "filter-month")
         arr.sort((a, b) => parseInt(a) - parseInt(b));
-      } else {
-        arr.sort();
-      }
+      else arr.sort();
       arr.forEach(val => {
-        const option = document.createElement("option");
-        option.value = val;
-        option.textContent = val;
-        select.appendChild(option);
+        const opt = document.createElement("option");
+        opt.value = val; opt.textContent = val;
+        select.appendChild(opt);
       });
-      
-      if (arr.includes(currentValue)) {
-        select.value = currentValue;
-      } else {
-        select.value = "all";
-      }
+      select.value = arr.includes(currentValue) ? currentValue : "all";
     }
     
-    // Aplica os filtros combinados com base nas seleções atuais
+    // Aplica os filtros combinados
     function applyFilter() {
-      const selectedYear = document.getElementById("filter-year").value;
-      const selectedMonth = document.getElementById("filter-month").value;
-      const selectedCategoria = document.getElementById("filter-categoria").value;
-      const selectedForma = document.getElementById("filter-forma").value;
-      const selectedCredor = document.getElementById("filter-credor").value;
-      const selectedPago = document.getElementById("filter-pago").value;
-      
-      const tbodyRows = document.querySelectorAll("#sheet-table tbody tr");
-      tbodyRows.forEach(function(row) {
+      const selYear = document.getElementById("filter-year").value;
+      const selMonth = document.getElementById("filter-month").value;
+      const selCat = document.getElementById("filter-categoria").value;
+      const selForma = document.getElementById("filter-forma").value;
+      const selCredor = document.getElementById("filter-credor").value;
+      const selPago = document.getElementById("filter-pago").value;
+      document.querySelectorAll("#sheet-table tbody tr").forEach(row => {
         let show = true;
-        // Filtra por Data (Ano e Mês)
         if (idxDataFinal !== -1) {
           let cell = row.children[idxDataFinal];
           if (cell) {
-            let dateText = cell.textContent.trim();
-            let parts = dateText.split("/");
+            let parts = cell.textContent.trim().split("/");
             if (parts.length === 3) {
-              let rowMonth = parts[1];
-              let rowYear = parts[2];
-              if (selectedYear !== "all" && rowYear !== selectedYear) show = false;
-              if (selectedMonth !== "all" && rowMonth !== selectedMonth) show = false;
+              if (selYear !== "all" && parts[2] !== selYear) show = false;
+              if (selMonth !== "all" && parts[1] !== selMonth) show = false;
             }
           }
         }
-        // Filtra por Categoria
         if (idxCategoriaFinal !== -1) {
-          let cell = row.children[idxCategoriaFinal];
-          if (cell) {
-            let text = cell.textContent.trim();
-            if (selectedCategoria !== "all" && text !== selectedCategoria) show = false;
-          }
+          let text = row.children[idxCategoriaFinal].textContent.trim();
+          if (selCat !== "all" && text !== selCat) show = false;
         }
-        // Filtra por Forma de Pgto
         if (idxFormaFinal !== -1) {
-          let cell = row.children[idxFormaFinal];
-          if (cell) {
-            let text = cell.textContent.trim();
-            if (selectedForma !== "all" && text !== selectedForma) show = false;
-          }
+          let text = row.children[idxFormaFinal].textContent.trim();
+          if (selForma !== "all" && text !== selForma) show = false;
         }
-        // Filtra por Credor
         if (idxCredorFinal !== -1) {
-          let cell = row.children[idxCredorFinal];
-          if (cell) {
-            let text = cell.textContent.trim();
-            if (selectedCredor !== "all" && text !== selectedCredor) show = false;
-          }
+          let text = row.children[idxCredorFinal].textContent.trim();
+          if (selCredor !== "all" && text !== selCredor) show = false;
         }
-        // Filtra por Pago Por
         if (idxPagoFinal !== -1) {
-          let cell = row.children[idxPagoFinal];
-          if (cell) {
-            let text = cell.textContent.trim();
-            if (selectedPago !== "all" && text !== selectedPago) show = false;
-          }
+          let text = row.children[idxPagoFinal].textContent.trim();
+          if (selPago !== "all" && text !== selPago) show = false;
         }
         row.style.display = show ? "" : "none";
       });
-      
       updateTotalSum();
       updateFilterDropdowns();
     }
     
-    // Adiciona listeners aos dropdowns
     function addFilterListeners() {
       document.getElementById("filter-year").addEventListener("change", applyFilter);
       document.getElementById("filter-month").addEventListener("change", applyFilter);
@@ -386,51 +290,40 @@
       document.getElementById("filter-pago").addEventListener("change", applyFilter);
     }
     
-    // Atualiza o cabeçalho e o rodapé de impressão com os filtros usados e data/hora
+    // Atualiza o cabeçalho e rodapé de impressão com os filtros usados e a data/hora
     function updatePrintInfo() {
-      const selectedYear = document.getElementById("filter-year").value;
-      const selectedMonth = document.getElementById("filter-month").value;
+      const selYear = document.getElementById("filter-year").value;
+      const selMonth = document.getElementById("filter-month").value;
       const totalText = document.getElementById("total-container").textContent;
-      let headerHtml = "<h2>Relatório de Despesas - Babylon Delicatessen</h2>";
-      headerHtml += "<p>Ano escolhido: " + (selectedYear === "all" ? "Todos" : selectedYear) + " - " + totalText + "</p>";
-      if (selectedMonth !== "all") {
-        headerHtml += "<p>Mês escolhido: " + selectedMonth + "</p>";
-      }
-      document.getElementById("print-header").innerHTML = headerHtml;
-      
+      let headerHTML = "<h2>Relatório de Despesas - Babylon Delicatessen</h2>";
+      headerHTML += "<p>Ano escolhido: " + (selYear === "all" ? "Todos" : selYear) + " - " + totalText + "</p>";
+      if(selMonth !== "all") { headerHTML += "<p>Mês escolhido: " + selMonth + "</p>"; }
+      document.getElementById("print-header").innerHTML = headerHTML;
       const now = new Date();
       document.getElementById("print-footer").innerHTML = "<p>Impressão realizada em: " + now.toLocaleString("pt-BR") + "</p>";
     }
     
     window.addEventListener("beforeprint", updatePrintInfo);
     
+    // Busca e processa os dados do Google Sheets
     fetch(publishedHtmlUrl)
       .then(response => response.text())
       .then(htmlText => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, "text/html");
         const sourceTable = doc.querySelector("table.waffle");
-        if (!sourceTable) {
-          console.error("Tabela não encontrada na página publicada.");
-          return;
-        }
+        if (!sourceTable) { console.error("Tabela não encontrada."); return; }
         const rows = sourceTable.querySelectorAll("tr");
-        if (rows.length < 2) {
-          console.error("Linhas insuficientes para processar os dados.");
-          return;
-        }
+        if (rows.length < 2) { console.error("Linhas insuficientes."); return; }
         
-        // --- Processa o cabeçalho (linha 2 – índice 1) ---
+        // Processa o cabeçalho (linha 2 – índice 1)
         let headerCells = Array.from(rows[1].querySelectorAll("td, th"));
         let useNumbering = false;
-        if (headerCells.length > 0) {
-          const firstHeaderText = headerCells[0].textContent.trim();
-          if (firstHeaderText === "" || !isNaN(firstHeaderText)) {
-            useNumbering = true;
-            headerCells = headerCells.slice(1);
-          }
+        if(headerCells.length > 0) {
+          const first = headerCells[0].textContent.trim();
+          if(first === "" || !isNaN(first)) { useNumbering = true; headerCells = headerCells.slice(1); }
         }
-        // Colunas a excluir
+        // Colunas a excluir (em minúsculas)
         const columnsToExclude = [
           "carimbo de data/hora",
           "[form publisher] edit url",
@@ -442,21 +335,18 @@
         let keptIndices = [];
         let headers = [];
         headerCells.forEach((cell, i) => {
-          const headerText = cell.textContent.trim();
-          const lower = headerText.toLowerCase();
+          const txt = cell.textContent.trim();
+          const lower = txt.toLowerCase();
           let exclude = false;
-          for (const col of columnsToExclude) {
-            if (lower.includes(col)) { exclude = true; break; }
+          for(let col of columnsToExclude) {
+            if(lower.includes(col)) { exclude = true; break; }
           }
-          if (!exclude) {
-            keptIndices.push(i);
-            headers.push(headerText);
-          }
+          if(!exclude) { keptIndices.push(i); headers.push(txt); }
         });
         
         // Índices originais para "Data da Despesa" e "Valor Pago"
-        const idxDataDespesaOrig = headers.findIndex(text => text.toLowerCase().includes("data da despesa"));
-        const idxValorPagoOrig = headers.findIndex(text => text.toLowerCase().includes("valor pago"));
+        const idxDataDespesaOrig = headers.findIndex(h => h.toLowerCase().includes("data da despesa"));
+        const idxValorPagoOrig = headers.findIndex(h => h.toLowerCase().includes("valor pago"));
         
         // Mapeamento para renomear os cabeçalhos conforme solicitado
         const headerMapping = {
@@ -470,117 +360,97 @@
           "anexar comprovante de pagamento": "Comprovante pgto",
           "anexar recibo ou nota fiscal": "Recibo/NF"
         };
-        let displayHeaders = headers.map(header => {
-          const lower = header.toLowerCase();
-          return headerMapping[lower] || header;
+        let displayHeaders = headers.map(h => {
+          let lower = h.toLowerCase();
+          return headerMapping[lower] || h;
         });
         
-        // Ao criar o cabeçalho, adiciona a classe "hide-print" (para impressão) às colunas que NÃO devem aparecer:
-        // Apenas serão exibidas na impressão as colunas: "Data", "Credor", "Descrição" e "Valor".
+        // Cria o cabeçalho da tabela exibida. Apenas serão impressas as colunas: Data, Credor, Descrição e Valor.
         const allowedPrint = ["Data", "Credor", "Descrição", "Valor"];
         const thead = document.querySelector("#sheet-table thead");
         const headerTr = document.createElement("tr");
-        displayHeaders.forEach(header => {
+        displayHeaders.forEach(h => {
           const th = document.createElement("th");
-          th.textContent = header;
-          if (!allowedPrint.includes(header)) {
+          th.textContent = h;
+          if(!allowedPrint.includes(h)) { th.classList.add("hide-print"); }
+          if(h.toLowerCase().includes("comprovante") || h.toLowerCase().includes("recibo"))
             th.classList.add("hide-print");
-          }
-          // Também, para as colunas "Comprovante pgto" e "Recibo/NF", já adiciona a classe no-print (caso queira ocultá-las mesmo na tela de impressão)
-          if (header.toLowerCase().includes("comprovante") || header.toLowerCase().includes("recibo")) {
-            th.classList.add("hide-print");
-          }
           headerTr.appendChild(th);
         });
         thead.appendChild(headerTr);
         
-        // Determina os índices finais para os filtros na tabela exibida
+        // Determina os índices finais para os filtros
         idxDataFinal = displayHeaders.findIndex(h => h === "Data");
         idxCategoriaFinal = displayHeaders.findIndex(h => h === "Categoria");
         idxFormaFinal = displayHeaders.findIndex(h => h === "Forma de Pgto");
         idxCredorFinal = displayHeaders.findIndex(h => h === "Credor");
         idxPagoFinal = displayHeaders.findIndex(h => h === "Pago Por");
+        idxValorFinal = displayHeaders.findIndex(h => h === "Valor");
         
-        // --- Processa as linhas de dados (a partir da linha 3 – índice 2) ---
+        // Processa as linhas de dados (a partir da linha 3 – índice 2)
         const tbody = document.querySelector("#sheet-table tbody");
-        for (let i = 2; i < rows.length; i++) {
+        for(let i = 2; i < rows.length; i++) {
           let cells = Array.from(rows[i].querySelectorAll("td"));
-          if (cells.length === 0) continue;
-          if (useNumbering && cells.length > headerCells.length) {
-            const firstCellText = cells[0].textContent.trim();
-            if (firstCellText === "" || !isNaN(firstCellText)) {
-              cells = cells.slice(1);
-            }
+          if(cells.length === 0) continue;
+          if(useNumbering && cells.length > headerCells.length) {
+            const first = cells[0].textContent.trim();
+            if(first === "" || !isNaN(first)) { cells = cells.slice(1); }
           }
           let filteredCells = keptIndices.map(index => cells[index]);
-          if (filteredCells.length !== headers.length) continue;
-          
+          if(filteredCells.length !== headers.length) continue;
           // Ignora a linha se "Data da Despesa" estiver vazia
-          if (idxDataDespesaOrig !== -1) {
+          if(idxDataDespesaOrig !== -1) {
             let dataDespesa = filteredCells[idxDataDespesaOrig].textContent.trim();
-            if (dataDespesa === "") continue;
+            if(dataDespesa === "") continue;
             let parts = dataDespesa.split("/");
-            if (parts.length === 3) {
+            if(parts.length === 3) {
               uniqueMonths.add(parts[1]);
               uniqueYears.add(parts[2]);
             }
           }
-          
           // Armazena os valores para os demais filtros
-          if (idxCategoriaFinal !== -1) {
+          if(idxCategoriaFinal !== -1) {
             let cat = filteredCells[idxCategoriaFinal].textContent.trim();
-            if (cat !== "") uniqueCategories.add(cat);
+            if(cat !== "") uniqueCategories.add(cat);
           }
-          if (idxFormaFinal !== -1) {
+          if(idxFormaFinal !== -1) {
             let forma = filteredCells[idxFormaFinal].textContent.trim();
-            if (forma !== "") uniqueFormaPgto.add(forma);
+            if(forma !== "") uniqueFormaPgto.add(forma);
           }
-          if (idxCredorFinal !== -1) {
+          if(idxCredorFinal !== -1) {
             let credor = filteredCells[idxCredorFinal].textContent.trim();
-            if (credor !== "") uniqueCredor.add(credor);
+            if(credor !== "") uniqueCredor.add(credor);
           }
-          if (idxPagoFinal !== -1) {
+          if(idxPagoFinal !== -1) {
             let pago = filteredCells[idxPagoFinal].textContent.trim();
-            if (pago !== "") uniquePagoPor.add(pago);
+            if(pago !== "") uniquePagoPor.add(pago);
           }
-          
-          // Cria a linha da tabela e trata o campo "Valor"
+          // Cria a linha e trata o campo "Valor"
           const tr = document.createElement("tr");
           let valorPagoNum = 0;
           filteredCells.forEach((cell, j) => {
             const td = document.createElement("td");
-            // Para colunas de anexo (Comprovante pgto e Recibo/NF), exibe o emoji; e oculta na impressão
-            if (displayHeaders[j].toLowerCase().includes("comprovante") || displayHeaders[j].toLowerCase().includes("recibo")) {
+            if(displayHeaders[j].toLowerCase().includes("comprovante") || displayHeaders[j].toLowerCase().includes("recibo")) {
               const aTag = cell.querySelector("a");
-              if (aTag && aTag.href) {
+              if(aTag && aTag.href) {
                 const a = document.createElement("a");
-                a.href = aTag.href;
-                a.target = "_blank";
-                a.title = "Baixar arquivo";
-                a.textContent = "⬇️";
+                a.href = aTag.href; a.target = "_blank"; a.title = "Baixar arquivo"; a.textContent = "⬇️";
                 td.appendChild(a);
-              } else {
-                td.textContent = "";
-              }
+              } else { td.textContent = ""; }
               td.classList.add("hide-print");
             }
-            // Para a coluna "Valor", formata como moeda (R$)
-            else if (displayHeaders[j].toLowerCase().includes("valor")) {
+            else if(displayHeaders[j].toLowerCase().includes("valor")) {
               let raw = cell.textContent.trim();
               raw = raw.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
               let num = parseFloat(raw);
-              if (isNaN(num)) { num = 0; }
+              if(isNaN(num)) { num = 0; }
               valorPagoNum = num;
-              const formatted = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(num);
-              td.textContent = formatted;
+              td.textContent = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(num);
             }
             else {
               td.textContent = cell.textContent.trim();
-              // Se esta coluna não estiver na lista permitida para impressão, adicione a classe hide-print
               const allowedPrint = ["Data", "Credor", "Descrição", "Valor"];
-              if (!allowedPrint.includes(displayHeaders[j])) {
-                td.classList.add("hide-print");
-              }
+              if(!allowedPrint.includes(displayHeaders[j])) { td.classList.add("hide-print"); }
             }
             tr.appendChild(td);
           });
@@ -588,66 +458,42 @@
           tbody.appendChild(tr);
         }
         
-        // --- Popula os dropdowns com os valores únicos (todos os dados) ---
+        // Popula os dropdowns com todos os dados
         function populateAllDropdowns() {
-          // Para Ano
           const filterYear = document.getElementById("filter-year");
-          let uniqueYearsArray = Array.from(uniqueYears);
-          uniqueYearsArray.sort((a, b) => parseInt(a) - parseInt(b));
-          uniqueYearsArray.forEach(function(year) {
+          Array.from(uniqueYears).sort((a, b) => parseInt(a) - parseInt(b)).forEach(year => {
             let option = document.createElement("option");
-            option.value = year;
-            option.textContent = year;
+            option.value = year; option.textContent = year;
             filterYear.appendChild(option);
           });
-          // Para Mês
           const filterMonth = document.getElementById("filter-month");
-          let uniqueMonthsArray = Array.from(uniqueMonths);
-          uniqueMonthsArray.sort((a, b) => parseInt(a) - parseInt(b));
-          uniqueMonthsArray.forEach(function(month) {
+          Array.from(uniqueMonths).sort((a, b) => parseInt(a) - parseInt(b)).forEach(month => {
             let option = document.createElement("option");
-            option.value = month;
-            option.textContent = month;
+            option.value = month; option.textContent = month;
             filterMonth.appendChild(option);
           });
-          // Para Categoria
-          const filterCategoria = document.getElementById("filter-categoria");
-          let uniqueCategoriesArray = Array.from(uniqueCategories);
-          uniqueCategoriesArray.sort();
-          uniqueCategoriesArray.forEach(function(cat) {
+          const filterCat = document.getElementById("filter-categoria");
+          Array.from(uniqueCategories).sort().forEach(cat => {
             let option = document.createElement("option");
-            option.value = cat;
-            option.textContent = cat;
-            filterCategoria.appendChild(option);
+            option.value = cat; option.textContent = cat;
+            filterCat.appendChild(option);
           });
-          // Para Forma de Pgto
           const filterForma = document.getElementById("filter-forma");
-          let uniqueFormaArray = Array.from(uniqueFormaPgto);
-          uniqueFormaArray.sort();
-          uniqueFormaArray.forEach(function(forma) {
+          Array.from(uniqueFormaPgto).sort().forEach(forma => {
             let option = document.createElement("option");
-            option.value = forma;
-            option.textContent = forma;
+            option.value = forma; option.textContent = forma;
             filterForma.appendChild(option);
           });
-          // Para Credor
           const filterCredor = document.getElementById("filter-credor");
-          let uniqueCredorArray = Array.from(uniqueCredor);
-          uniqueCredorArray.sort();
-          uniqueCredorArray.forEach(function(credor) {
+          Array.from(uniqueCredor).sort().forEach(credor => {
             let option = document.createElement("option");
-            option.value = credor;
-            option.textContent = credor;
+            option.value = credor; option.textContent = credor;
             filterCredor.appendChild(option);
           });
-          // Para Pago Por
           const filterPago = document.getElementById("filter-pago");
-          let uniquePagoArray = Array.from(uniquePagoPor);
-          uniquePagoArray.sort();
-          uniquePagoArray.forEach(function(pago) {
+          Array.from(uniquePagoPor).sort().forEach(pago => {
             let option = document.createElement("option");
-            option.value = pago;
-            option.textContent = pago;
+            option.value = pago; option.textContent = pago;
             filterPago.appendChild(option);
           });
         }
@@ -655,7 +501,6 @@
         populateAllDropdowns();
         addFilterListeners();
         applyFilter();
-        
       })
       .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
   </script>
