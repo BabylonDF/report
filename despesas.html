@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard de Despesas - Babylon Delicatessen</title>
+  <style>
+    /* Estilo base com tema neon azul */
+    body {
+      background-color: #000;
+      color: #0ff;
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    h1, h2 {
+      text-align: center;
+      text-shadow: 0 0 5px #0ff;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .filters {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .filters label {
+      margin-right: 10px;
+      font-size: 18px;
+    }
+    .filters select {
+      background: #111;
+      border: 1px solid #0ff;
+      color: #0ff;
+      padding: 10px;
+      margin: 0 10px;
+      font-size: 16px;
+      outline: none;
+      border-radius: 4px;
+    }
+    .summary {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .summary table {
+      margin: 0 auto;
+      border-collapse: collapse;
+    }
+    .summary th, .summary td {
+      border: 1px solid #0ff;
+      padding: 10px 15px;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 40px;
+    }
+    table.data-table th, table.data-table td {
+      border: 1px solid #0ff;
+      padding: 8px;
+      text-align: center;
+    }
+    table.data-table th {
+      background-color: #111;
+    }
+    table.data-table tr:hover {
+      background-color: rgba(0, 255, 255, 0.1);
+    }
+    a {
+      color: #0ff;
+      text-decoration: none;
+    }
+  </style>
+  <!-- Biblioteca para converter CSV -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js" integrity="sha512-tUjwbYMBIDaZmGMUvqjfA8byGzG2p+FE0LWt7n7F3pF3RztR90b8lIg0h6SZEdW+x6H6f/eU/6Lt0dEyyiP9dQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Dashboard de Despesas</h1>
+    <h2>Babylon Delicatessen</h2>
+
+    <!-- Filtros dinâmicos -->
+    <div class="filters">
+      <label for="yearFilter">Ano:</label>
+      <select id="yearFilter">
+         <option value="all">Todos</option>
+      </select>
+      <label for="monthFilter">Mês:</label>
+      <select id="monthFilter">
+         <option value="all">Todos</option>
+      </select>
+    </div>
+
+    <!-- Resumo por categoria -->
+    <div class="summary">
+      <h2>Resumo de Despesas</h2>
+      <div id="summaryContent">
+        <!-- O resumo será injetado aqui via JavaScript -->
+      </div>
+    </div>
+
+    <!-- Tabela com os detalhes -->
+    <div class="data-table">
+      <h2>Detalhes das Despesas</h2>
+      <table id="expensesTable" class="data-table">
+        <thead>
+          <tr>
+            <th>Carimbo de data/hora</th>
+            <th>Data da Despesa</th>
+            <th>Selecione a categoria</th>
+            <th>Escolha a opção de pagamento</th>
+            <th>Nº do documento</th>
+            <th>Nome do Credor</th>
+            <th>Descrição</th>
+            <th>Valor Pago</th>
+            <th>Custeado por</th>
+            <th>Anexar Comprovante de Pagamento</th>
+            <th>Anexar Recibo ou Nota Fiscal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- As linhas dos dados serão criadas dinamicamente -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Atualize a URL para a nova versão CSV da sua planilha
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pub?gid=1163522917&single=true&output=csv';
+
+    // Variável para armazenar todos os dados
+    let allData = [];
+
+    /**
+     * Função para extrair ano e mês a partir de uma data.
+     * Tenta converter a string para objeto Date; caso o formato seja dd/mm/aaaa, faz ajuste.
+     */
+    function getYearMonth(dateString) {
+      let date = new Date(dateString);
+      if (isNaN(date)) {
+        // Se o formato for dd/mm/aaaa, substitui para mm/dd/aaaa
+        const parts = dateString.split('/');
+        if(parts.length === 3) {
+          date = new Date(parts[1] + '/' + parts[0] + '/' + parts[2]);
+        }
+      }
+      if (isNaN(date)) return { year: null, month: null };
+      return { year: date.getFullYear(), month: date.getMonth() + 1 };
+    }
+
+    /**
+     * Preenche os selects de filtros com os anos e meses disponíveis nos dados.
+     */
+    function updateFilters(data) {
+      const yearSet = new Set();
+      const monthSet = new Set();
+      
+      data.forEach(row => {
+        const { year, month } = getYearMonth(row['Data da Despesa']);
+        if(year) yearSet.add(year);
+        if(month) monthSet.add(month);
+      });
+
+      // Preenche o filtro de Ano
+      const yearFilter = document.getElementById('yearFilter');
+      yearFilter.innerHTML = '<option value="all">Todos</option>';
+      Array.from(yearSet).sort().forEach(year => {
+        yearFilter.innerHTML += `<option value="${year}">${year}</option>`;
+      });
+
+      // Preenche o filtro de Mês (apresentando o nome do mês em português)
+      const monthFilter = document.getElementById('monthFilter');
+      monthFilter.innerHTML = '<option value="all">Todos</option>';
+      const monthNames = [ "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                           "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" ];
+      Array.from(monthSet).sort((a, b) => a - b).forEach(month => {
+        monthFilter.innerHTML += `<option value="${month}">${monthNames[month-1]}</option>`;
+      });
+    }
+
+    /**
+     * Renderiza a tabela de despesas com os dados filtrados.
+     */
+    function renderTable(data) {
+      const tbody = document.querySelector('#expensesTable tbody');
+      tbody.innerHTML = ''; // Limpa os dados atuais
+
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row['Carimbo de data/hora'] || ''}</td>
+          <td>${row['Data da Despesa'] || ''}</td>
+          <td>${row['Selecione a categoria'] || ''}</td>
+          <td>${row['Escolha a opção de pagamento'] || ''}</td>
+          <td>${row['Nº do documento'] || ''}</td>
+          <td>${row['Nome do Credor'] || ''}</td>
+          <td>${row['Descrição'] || ''}</td>
+          <td>${row['Valor Pago'] || ''}</td>
+          <td>${row['Custeado por'] || ''}</td>
+          <td>${row['Anexar Comprovante de Pagamento'] || ''}</td>
+          <td>${row['Anexar Recibo ou Nota Fiscal'] || ''}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    /**
+     * Calcula e exibe um resumo com o total gasto por categoria e o total geral.
+     */
+    function renderSummary(data) {
+      const summary = {};
+      let overallTotal = 0;
+
+      data.forEach(row => {
+        const categoria = row['Selecione a categoria'] || 'Sem Categoria';
+        // Converte o valor para número (substitui vírgula por ponto, se necessário)
+        const valor = parseFloat((row['Valor Pago'] || '0').replace(',', '.')) || 0;
+        overallTotal += valor;
+        summary[categoria] = (summary[categoria] || 0) + valor;
+      });
+
+      let summaryHTML = '<table><thead><tr><th>Categoria</th><th>Total Gasto</th></tr></thead><tbody>';
+      for (let cat in summary) {
+        summaryHTML += `<tr><td>${cat}</td><td>${summary[cat].toFixed(2)}</td></tr>`;
+      }
+      summaryHTML += `<tr><th>Total Geral</th><th>${overallTotal.toFixed(2)}</th></tr>`;
+      summaryHTML += '</tbody></table>';
+
+      document.getElementById('summaryContent').innerHTML = summaryHTML;
+    }
+
+    /**
+     * Aplica os filtros selecionados e atualiza a tabela e o resumo.
+     */
+    function applyFilters() {
+      const yearFilter = document.getElementById('yearFilter').value;
+      const monthFilter = document.getElementById('monthFilter').value;
+      
+      const filteredData = allData.filter(row => {
+        const { year, month } = getYearMonth(row['Data da Despesa']);
+        const yearMatch = (yearFilter === 'all' || String(year) === yearFilter);
+        const monthMatch = (monthFilter === 'all' || String(month) === monthFilter);
+        return yearMatch && monthMatch;
+      });
+
+      renderTable(filteredData);
+      renderSummary(filteredData);
+    }
+
+    // Carrega os dados da planilha via Papa Parse
+    Papa.parse(csvUrl, {
+      download: true,
+      header: true,
+      complete: function(results) {
+        allData = results.data;
+        // Remove linhas vazias (se houver)
+        allData = allData.filter(row => row['Carimbo de data/hora']);
+        updateFilters(allData);
+        renderTable(allData);
+        renderSummary(allData);
+      },
+      error: function(err) {
+        console.error('Erro ao carregar os dados:', err);
+      }
+    });
+
+    // Registra os eventos de mudança dos filtros
+    document.getElementById('yearFilter').addEventListener('change', applyFilters);
+    document.getElementById('monthFilter').addEventListener('change', applyFilters);
+  </script>
+</body>
+</html>
