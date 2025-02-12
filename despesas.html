@@ -130,12 +130,10 @@
       const tbodyRows = document.querySelectorAll("#sheet-table tbody tr");
       tbodyRows.forEach(function(row) {
         if (row.style.display !== "none") {
-          // Recupera o valor numérico armazenado no atributo data-valor-pago
           let valor = parseFloat(row.getAttribute("data-valor-pago") || "0");
           total += valor;
         }
       });
-      // Formata o total como moeda brasileira (R$)
       const formattedTotal = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(total);
       document.getElementById("total-container").textContent = "Total Valor Pago: " + formattedTotal;
     }
@@ -184,9 +182,8 @@
         });
         thead.appendChild(headerTr);
         
-        // Determina o índice da coluna "Data da Despesa"
+        // Determina os índices das colunas "Data da Despesa" e "Valor Pago"
         const idxDataDespesa = headers.findIndex(text => text.toLowerCase().includes("data da despesa"));
-        // Determina o índice da coluna "Valor Pago"
         const idxValorPago = headers.findIndex(text => text.toLowerCase().includes("valor pago"));
         
         // Conjunto para armazenar combinações únicas de mês/ano
@@ -205,12 +202,19 @@
             }
           }
           
-          // Remove a célula referente a "Carimbo de data/hora", se existir
+          // Remove a célula referente à coluna "Carimbo de data/hora", se existir
           if (indexCarimbo !== -1 && cells.length > indexCarimbo) {
             cells.splice(indexCarimbo, 1);
           }
           
+          // Se a quantidade de células não bater com os cabeçalhos, pula a linha
           if (cells.length !== headers.length) continue;
+          
+          // Se a coluna "Data da Despesa" existir e estiver vazia, pula a linha
+          if (idxDataDespesa !== -1) {
+            let dataDespesa = cells[idxDataDespesa].textContent.trim();
+            if (dataDespesa === "") continue;
+          }
           
           // Se houver coluna "Data da Despesa", extrai o mês/ano e armazena
           if (idxDataDespesa !== -1) {
@@ -223,11 +227,10 @@
           
           // Cria a linha da tabela e prepara para armazenar o valor pago
           const tr = document.createElement("tr");
-          let valorPagoNum = 0; // variável para armazenar o valor numérico da coluna "Valor Pago" desta linha
+          let valorPagoNum = 0;
           
           cells.forEach((cell, j) => {
             const td = document.createElement("td");
-            // Verifica se a coluna é de anexo (comprovante ou recibo)
             if (headers[j].toLowerCase().includes("comprovante") || headers[j].toLowerCase().includes("recibo")) {
               const aTag = cell.querySelector("a");
               if (aTag && aTag.href) {
@@ -241,10 +244,8 @@
                 td.textContent = "";
               }
             }
-            // Se for a coluna "Valor Pago", formata o número em moeda (R$)
             else if (headers[j].toLowerCase().includes("valor pago")) {
               let raw = cell.textContent.trim();
-              // Remove pontos e substitui vírgula por ponto para conversão
               raw = raw.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
               let num = parseFloat(raw);
               if (isNaN(num)) { num = 0; }
@@ -257,7 +258,6 @@
             }
             tr.appendChild(td);
           });
-          // Armazena o valor pago numérico na linha para uso no cálculo do total
           tr.setAttribute("data-valor-pago", valorPagoNum);
           tbody.appendChild(tr);
         }
@@ -301,9 +301,8 @@
           updateTotalSum();
         }
         
-        // Inicializa o filtro e o total
         filterSelect.addEventListener("change", applyFilter);
-        applyFilter(); // chama uma vez para atualizar o total inicialmente
+        applyFilter();
         
       })
       .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
