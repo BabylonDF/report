@@ -22,7 +22,7 @@
       padding: 20px;
     }
     .filters {
-      margin: 20px 0;
+      margin: 20px auto;
       text-align: center;
     }
     .filters label {
@@ -36,11 +36,10 @@
       padding: 10px;
       margin: 0 10px;
       font-size: 16px;
-      outline: none;
       border-radius: 4px;
     }
     .summary {
-      margin: 20px 0;
+      margin: 20px auto;
       text-align: center;
     }
     .summary table {
@@ -52,9 +51,12 @@
       padding: 10px 15px;
     }
     table.data-table {
-      width: 100%;
+      width: 90%;
+      margin: 20px auto;
       border-collapse: collapse;
-      margin-bottom: 40px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid #0ff;
+      border-radius: 4px;
     }
     table.data-table th, table.data-table td {
       border: 1px solid #0ff;
@@ -72,212 +74,198 @@
       text-decoration: none;
     }
   </style>
-  <!-- Inclui a biblioteca Tabletop.js -->
-  <script src="https://cdn.jsdelivr.net/npm/tabletop@1.5.1/src/tabletop.min.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>Dashboard de Despesas</h1>
     <h2>Babylon Delicatessen</h2>
     
-    <!-- Filtros dinâmicos -->
+    <!-- Dropdowns de Filtros -->
     <div class="filters">
       <label for="yearFilter">Ano:</label>
       <select id="yearFilter">
-        <!-- Placeholder e opção "Todos" -->
         <option value="" disabled selected>Selecione Ano</option>
         <option value="all">Todos</option>
       </select>
       <label for="monthFilter">Mês:</label>
       <select id="monthFilter">
-        <!-- Placeholder e opção "Todos" -->
         <option value="" disabled selected>Selecione Mês</option>
         <option value="all">Todos</option>
       </select>
     </div>
-
-    <!-- Resumo por categoria -->
+    
+    <!-- Resumo -->
     <div class="summary">
       <h2>Resumo de Despesas</h2>
-      <div id="summaryContent"><!-- Resumo será injetado aqui --></div>
+      <div id="summaryContent"></div>
     </div>
-
-    <!-- Tabela de dados -->
-    <div class="data-table">
-      <h2>Detalhes das Despesas</h2>
-      <table id="expensesTable" class="data-table">
-        <thead>
-          <tr><!-- Cabeçalhos serão inseridos aqui (linha 2 da planilha) --></tr>
-        </thead>
-        <tbody><!-- Linhas dos dados serão inseridas via JavaScript --></tbody>
-      </table>
-    </div>
-  </div>
-
-  <script>
-    // URL da planilha (versão pubhtml)
-    var publicSpreadsheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true';
     
-    var allData = [];   // Dados mapeados (a partir da linha 3)
-    var headers = [];   // Cabeçalhos definidos na linha 2
-
-    /**
-     * Extrai o ano e o mês de uma data no formato dd/mm/aaaa.
-     * Retorna um objeto {year, month} ou {year:null, month:null} se inválido.
-     */
-    function getYearMonth(dateString) {
-      var parts = dateString.split('/');
-      if(parts.length !== 3) return { year: null, month: null };
-      var day   = parseInt(parts[0], 10);
-      var month = parseInt(parts[1], 10);
-      var year  = parseInt(parts[2], 10);
-      if(isNaN(day) || isNaN(month) || isNaN(year)) return { year: null, month: null };
-      return { year: year, month: month };
+    <!-- Tabela com Dados -->
+    <table id="expensesTable" class="data-table">
+      <thead>
+        <tr id="tableHeader"></tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  
+  <script>
+    // URL da página publicada da planilha (HTML) – observe que usa "pubhtml" e o gid da aba "Respostas"
+    const publishedHtmlUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true';
+    
+    let allData = [];   // Array de objetos com os dados (linhas a partir da 3ª)
+    let headers = [];   // Cabeçalhos extraídos da 2ª linha da planilha
+    
+    // Função para extrair ano e mês de uma data no formato dd/mm/aaaa
+    function getYearMonth(dateStr) {
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return { year: null, month: null };
+      const day   = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const year  = parseInt(parts[2], 10);
+      if (isNaN(day) || isNaN(month) || isNaN(year)) return { year: null, month: null };
+      return { year, month };
     }
-
-    /**
-     * Preenche os dropdowns de Ano e Mês com os valores disponíveis no campo "Data da Despesa".
-     */
+    
+    // Atualiza os dropdowns com os anos e meses encontrados no campo "Data da Despesa"
     function updateFilters(data) {
-      var yearSet = new Set();
-      var monthSet = new Set();
-      
-      data.forEach(function(row) {
-        var dateInfo = getYearMonth(row['Data da Despesa'] || '');
-        if(dateInfo.year) yearSet.add(dateInfo.year);
-        if(dateInfo.month) monthSet.add(dateInfo.month);
+      const yearSet = new Set();
+      const monthSet = new Set();
+      data.forEach(row => {
+        const dateStr = row['Data da Despesa'] || '';
+        const dt = getYearMonth(dateStr);
+        if (dt.year) yearSet.add(dt.year);
+        if (dt.month) monthSet.add(dt.month);
       });
       
-      var yearFilter = document.getElementById('yearFilter');
-      // Mantém o placeholder e a opção "Todos"
+      const yearFilter = document.getElementById('yearFilter');
       yearFilter.innerHTML = '<option value="" disabled selected>Selecione Ano</option><option value="all">Todos</option>';
-      Array.from(yearSet).sort().forEach(function(year) {
-        yearFilter.innerHTML += '<option value="' + year + '">' + year + '</option>';
+      Array.from(yearSet).sort((a, b) => a - b).forEach(year => {
+        yearFilter.innerHTML += `<option value="${year}">${year}</option>`;
       });
-
-      var monthFilter = document.getElementById('monthFilter');
+      
+      const monthFilter = document.getElementById('monthFilter');
       monthFilter.innerHTML = '<option value="" disabled selected>Selecione Mês</option><option value="all">Todos</option>';
-      var monthNames = [ "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                         "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" ];
-      Array.from(monthSet).sort(function(a, b) { return a - b; }).forEach(function(month) {
-        monthFilter.innerHTML += '<option value="' + month + '">' + monthNames[month - 1] + '</option>';
+      const monthNames = [ "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                           "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" ];
+      Array.from(monthSet).sort((a, b) => a - b).forEach(m => {
+        monthFilter.innerHTML += `<option value="${m}">${monthNames[m-1]}</option>`;
       });
     }
-
-    /**
-     * Renderiza a tabela:
-     * - Insere os cabeçalhos (linha 2 da planilha) no <thead>.
-     * - Insere as linhas dos dados (a partir da linha 3) no <tbody>.
-     * Para os campos de link, exibe um emoji que, ao ser clicado, baixa o arquivo.
-     */
+    
+    // Renderiza a tabela: insere cabeçalhos e dados
     function renderTable(data) {
-      var thead = document.querySelector('#expensesTable thead tr');
-      thead.innerHTML = '';
-      headers.forEach(function(header) {
-        thead.innerHTML += '<th>' + header + '</th>';
+      const tableHeader = document.getElementById('tableHeader');
+      tableHeader.innerHTML = '';
+      headers.forEach(header => {
+        tableHeader.innerHTML += `<th>${header}</th>`;
       });
-
-      var tbody = document.querySelector('#expensesTable tbody');
-      tbody.innerHTML = '';
-      data.forEach(function(row) {
-        var tr = document.createElement('tr');
-        headers.forEach(function(header) {
-          var cellContent = row[header] || '';
-          // Se o campo for um link, substitui pelo emoji apropriado
+      
+      const tableBody = document.getElementById('tableBody');
+      tableBody.innerHTML = '';
+      data.forEach(row => {
+        let tr = document.createElement('tr');
+        headers.forEach(header => {
+          let cellContent = row[header] || '';
+          // Se o campo for um link para comprovante ou recibo, exibe emoji com link para download
           if (header === 'Anexar Comprovante de Pagamento' && cellContent.trim() !== '') {
-            cellContent = '<a href="' + cellContent + '" download target="_blank">📎</a>';
+            cellContent = `<a href="${cellContent}" download target="_blank">📎</a>`;
           } else if (header === 'Anexar Recibo ou Nota Fiscal' && cellContent.trim() !== '') {
-            cellContent = '<a href="' + cellContent + '" download target="_blank">🧾</a>';
+            cellContent = `<a href="${cellContent}" download target="_blank">🧾</a>`;
           }
-          tr.innerHTML += '<td>' + cellContent + '</td>';
+          tr.innerHTML += `<td>${cellContent}</td>`;
         });
-        tbody.appendChild(tr);
+        tableBody.appendChild(tr);
       });
     }
-
-    /**
-     * Calcula e exibe um resumo dos gastos:
-     * - Agrupa os valores por categoria (campo "Selecione a categoria")
-     * - Exibe o total por categoria e o total geral.
-     */
+    
+    // Calcula e exibe o resumo dos gastos por categoria e o total geral
     function renderSummary(data) {
-      var summary = {};
-      var overallTotal = 0;
-      data.forEach(function(row) {
-        var categoria = row['Selecione a categoria'] || 'Sem Categoria';
-        // Converte "Valor Pago" para número (substituindo vírgula por ponto)
-        var valor = parseFloat((row['Valor Pago'] || '0').replace(',', '.')) || 0;
+      let summary = {};
+      let overallTotal = 0;
+      data.forEach(row => {
+        const categoria = row['Selecione a categoria'] || 'Sem Categoria';
+        const valorStr = row['Valor Pago'] || '0';
+        const valor = parseFloat(valorStr.replace(',', '.')) || 0;
         overallTotal += valor;
         summary[categoria] = (summary[categoria] || 0) + valor;
       });
-      var summaryHTML = '<table><thead><tr><th>Categoria</th><th>Total Gasto</th></tr></thead><tbody>';
-      for (var cat in summary) {
-        summaryHTML += '<tr><td>' + cat + '</td><td>' + summary[cat].toFixed(2) + '</td></tr>';
+      let summaryHTML = '<table><thead><tr><th>Categoria</th><th>Total Gasto</th></tr></thead><tbody>';
+      for (let cat in summary) {
+        summaryHTML += `<tr><td>${cat}</td><td>${summary[cat].toFixed(2)}</td></tr>`;
       }
-      summaryHTML += '<tr><th>Total Geral</th><th>' + overallTotal.toFixed(2) + '</th></tr>';
+      summaryHTML += `<tr><th>Total Geral</th><th>${overallTotal.toFixed(2)}</th></tr>`;
       summaryHTML += '</tbody></table>';
       document.getElementById('summaryContent').innerHTML = summaryHTML;
     }
-
-    /**
-     * Aplica os filtros de Ano e Mês e atualiza a tabela e o resumo.
-     */
+    
+    // Aplica os filtros de Ano e Mês e atualiza tabela e resumo
     function applyFilters() {
-      var yearFilter = document.getElementById('yearFilter').value;
-      var monthFilter = document.getElementById('monthFilter').value;
-      
-      var filteredData = allData.filter(function(row) {
-        var dateInfo = getYearMonth(row['Data da Despesa'] || '');
-        var yearMatch = (yearFilter === "" || yearFilter === "all" || String(dateInfo.year) === yearFilter);
-        var monthMatch = (monthFilter === "" || monthFilter === "all" || String(dateInfo.month) === monthFilter);
+      const yearVal = document.getElementById('yearFilter').value;
+      const monthVal = document.getElementById('monthFilter').value;
+      const filteredData = allData.filter(row => {
+        const dt = getYearMonth(row['Data da Despesa'] || '');
+        const yearMatch = (yearVal === "" || yearVal === "all" || String(dt.year) === yearVal);
+        const monthMatch = (monthVal === "" || monthVal === "all" || String(dt.month) === monthVal);
         return yearMatch && monthMatch;
       });
       renderTable(filteredData);
       renderSummary(filteredData);
     }
-
-    // Registra os eventos dos dropdowns
+    
     document.getElementById('yearFilter').addEventListener('change', applyFilters);
     document.getElementById('monthFilter').addEventListener('change', applyFilters);
-
-    /**
-     * Inicializa o Tabletop para buscar os dados da planilha.
-     * - Utiliza o método "raw" para obter a matriz completa.
-     * - Ignora a primeira linha.
-     * - Usa a segunda linha como cabeçalho.
-     * - Mapeia as linhas seguintes (a partir da terceira) para objetos.
-     * O nome da aba é "Respostas".
-     */
+    
+    // Busca os dados da planilha publicada via fetch e processa a tabela
     function init() {
-      Tabletop.init({
-        key: publicSpreadsheetUrl,
-        callback: function(data, tabletop) {
-          var sheet = tabletop.sheets("Respostas");
-          if (!sheet || !sheet.raw || sheet.raw.length < 2) {
-            console.error("Dados insuficientes na planilha.");
+      fetch(publishedHtmlUrl)
+        .then(response => response.text())
+        .then(htmlText => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(htmlText, "text/html");
+          // A tabela da planilha normalmente possui a classe "waffle"
+          const sourceTable = doc.querySelector("table.waffle");
+          if (!sourceTable) {
+            console.error("Tabela não encontrada na página publicada.");
             return;
           }
-          // Para depuração, pode-se habilitar o log dos dados brutos:
-          // console.log("Raw data:", sheet.raw);
-          
+          const rows = sourceTable.querySelectorAll("tr");
+          if (rows.length < 2) {
+            console.error("Linhas insuficientes na tabela.");
+            return;
+          }
           // A segunda linha (índice 1) será o cabeçalho
-          headers = sheet.raw[1];
-          // As linhas a partir da terceira (índice 2) são os dados
-          allData = sheet.raw.slice(2).map(function(row) {
-            var obj = {};
-            headers.forEach(function(header, index) {
-              obj[header] = row[index] || '';
-            });
-            return obj;
+          const headerCells = rows[1].querySelectorAll("td, th");
+          headers = [];
+          headerCells.forEach(cell => {
+            headers.push(cell.textContent.trim());
           });
+          // Processa os dados a partir da terceira linha (índice 2)
+          allData = [];
+          for (let i = 2; i < rows.length; i++) {
+            const cells = rows[i].querySelectorAll("td");
+            if (cells.length < headers.length) continue;
+            let rowObj = {};
+            cells.forEach((cell, index) => {
+              // Se houver link, pega o atributo href; caso contrário, o texto
+              const link = cell.querySelector("a");
+              if (link) {
+                rowObj[headers[index]] = link.getAttribute("href");
+              } else {
+                rowObj[headers[index]] = cell.textContent.trim();
+              }
+            });
+            allData.push(rowObj);
+          }
+          // Atualiza os dropdowns, a tabela e o resumo
           updateFilters(allData);
           renderTable(allData);
           renderSummary(allData);
-        },
-        simpleSheet: false
-      });
+        })
+        .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
     }
-    window.addEventListener('DOMContentLoaded', init);
+    
+    window.addEventListener("DOMContentLoaded", init);
   </script>
 </body>
 </html>
