@@ -51,7 +51,7 @@
       cursor: pointer;
       margin-left: 10px;
     }
-    /* Total exibido em tela */
+    /* Total Valor Pago exibido em tela */
     #total-container {
       width: 90%;
       margin: 10px auto;
@@ -59,7 +59,7 @@
       color: white;
       font-size: 18px;
     }
-    /* Print summary: informações que serão exibidas somente na impressão */
+    /* Print summary: informações exibidas apenas na impressão */
     #print-summary {
       display: none;
       margin: 10px 5%;
@@ -72,7 +72,7 @@
       margin: 20px auto;
       overflow-x: auto;
     }
-    /* Tabela com cores padrão e fundo preto para visualização em tela */
+    /* Tabela para visualização em tela */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -89,7 +89,7 @@
       white-space: nowrap;
       position: relative;
     }
-    /* Estilo para os ícones de ordenação (mini filtros) */
+    /* Ícones de ordenação (mini filtros) */
     .sort-icon {
       cursor: pointer;
       user-select: none;
@@ -120,7 +120,7 @@
       color: white;
     }
     
-    /* Oculta as colunas "Categoria", "Forma de Pgto" e "Pago Por" na visualização web */
+    /* Oculta na web as colunas "Categoria", "Forma de Pgto" e "Pago Por" */
     @media screen {
       .hide-web { display: none; }
     }
@@ -131,11 +131,14 @@
         background: white !important;
         color: black !important;
       }
+      h1 {
+        color: black !important;
+      }
       /* Exibe o print summary */
       #print-summary {
         display: block;
       }
-      /* Oculta os filtros e elementos desnecessários */
+      /* Oculta filtros, total exibido em tela e outros elementos não impressos */
       #filter-container, #total-container, .no-print {
         display: none !important;
       }
@@ -153,7 +156,7 @@
 <body>
   <h1>Relatório de Despesas - Babylon Delicatessen</h1>
   
-  <!-- Área dos filtros (somente para visualização em tela) -->
+  <!-- Área dos filtros (apenas para visualização em tela) -->
   <div id="filter-container" class="no-print">
     <!-- Filtros de Data -->
     <div id="filter-date">
@@ -194,7 +197,12 @@
     </div>
   </div>
   
-  <!-- Elemento que será exibido somente na impressão com resumo dos filtros e total -->
+  <!-- Total Valor Pago (exibido na tela, acima da tabela) -->
+  <div id="total-container" class="no-print">
+    Total Valor Pago: R$ 0,00
+  </div>
+  
+  <!-- Elemento exibido apenas na impressão (resumo dos filtros e total) -->
   <div id="print-summary" class="print-only"></div>
   
   <!-- Tabela -->
@@ -238,11 +246,10 @@
         }
       });
       const formattedTotal = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(total);
-      // Atualiza o total na tela (não impresso)
       document.getElementById("total-container").textContent = "Total Valor Pago: " + formattedTotal;
     }
     
-    /***************** Função para atualizar os dropdowns com base nas linhas visíveis *****************/
+    /***************** Atualiza os dropdowns com base nas linhas visíveis *****************/
     function updateFilterDropdowns() {
       const visibleRows = Array.from(document.querySelectorAll("#sheet-table tbody tr"))
                                 .filter(row => row.style.display !== "none");
@@ -319,7 +326,7 @@
       }
     }
     
-    /***************** Função para aplicar os filtros combinados *****************/
+    /***************** Aplica os filtros combinados *****************/
     function applyFilter() {
       const selectedYear = document.getElementById("filter-year").value;
       const selectedMonth = document.getElementById("filter-month").value;
@@ -424,7 +431,7 @@
         } else if (type === "number") {
           aValue = parseFloat(cellA.replace(/[^\d,-]/g, "").replace(",", "."));
           bValue = parseFloat(cellB.replace(/[^\d,-]/g, "").replace(",", "."));
-        } else { // text
+        } else {
           aValue = cellA.toLowerCase();
           bValue = cellB.toLowerCase();
         }
@@ -520,11 +527,11 @@
           }
         });
         
-        // Determina os índices originais para "Data da Despesa" e "Valor Pago"
+        // Índices originais para "Data da Despesa" e "Valor Pago"
         const idxDataDespesaOrig = headers.findIndex(text => text.toLowerCase().includes("data da despesa"));
         const idxValorPagoOrig = headers.findIndex(text => text.toLowerCase().includes("valor pago"));
         
-        // Mapeamento para renomear os cabeçalhos conforme solicitado
+        // Mapeamento para renomear os cabeçalhos
         const headerMapping = {
           "data da despesa": "Data",
           "selecione a categoria": "Categoria",
@@ -544,21 +551,20 @@
         /***** Cria o cabeçalho da tabela *****/
         const thead = document.querySelector("#sheet-table thead");
         const headerTr = document.createElement("tr");
-        // Lista de colunas que serão exibidas na impressão
+        // Lista de colunas permitidas para impressão
         const allowedPrint = ["Data", "Credor", "Descrição", "Valor"];
         displayHeaders.forEach((header, j) => {
           const th = document.createElement("th");
           th.textContent = header;
-          // Insere o mini filtro de ordenação nas colunas "Data", "Credor" e "Valor"
+          // Mini filtros de ordenação nas colunas "Data", "Credor" e "Valor"
           if (header === "Data" || header === "Credor" || header === "Valor") {
             let sortIcon = document.createElement("span");
             sortIcon.classList.add("sort-icon");
             if (header === "Data") {
-              // Padrão: ordenação descendente para Data
+              // Padrão: ordenação descendente (mais atual no topo)
               sortIcon.textContent = " ▼";
               sortIcon.dataset.order = "desc";
             } else {
-              // Para as demais, padrão ascendente
               sortIcon.textContent = " ▲";
               sortIcon.dataset.order = "asc";
             }
@@ -577,7 +583,7 @@
             });
             th.appendChild(sortIcon);
           }
-          // Para impressão: apenas mostra as colunas permitidas
+          // Para impressão: somente mostra as colunas permitidas
           if (allowedPrint.indexOf(header) !== -1) {
             th.classList.add("print-allowed");
           } else {
@@ -591,7 +597,7 @@
         });
         thead.appendChild(headerTr);
         
-        // Atualiza os índices para filtros com base nos títulos
+        // Atualiza os índices para os filtros com base nos títulos
         idxDataFinal = displayHeaders.findIndex(h => h === "Data");
         idxCredorFinal = displayHeaders.findIndex(h => h === "Credor");
         idxValorFinal = displayHeaders.findIndex(h => h === "Valor");
@@ -623,7 +629,7 @@
               uniqueYears.add(parts[2]);
             }
           }
-          // Armazena os valores para os demais filtros
+          // Armazena os valores para os filtros
           if (idxCategoriaFinal !== -1) {
             let cat = filteredCells[idxCategoriaFinal].textContent.trim();
             if (cat !== "") uniqueCategories.add(cat);
@@ -746,7 +752,7 @@
         populateAllDropdowns();
         addFilterListeners();
         applyFilter();
-        // Ordena inicialmente a coluna "Data" em ordem decrescente (mais recente para mais antigo)
+        // Ordena inicialmente a coluna "Data" em ordem descendente (data atual no topo)
         sortTableByColumn(displayHeaders.findIndex(h => h === "Data"), "desc", "date");
       })
       .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
