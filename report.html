@@ -531,31 +531,48 @@
       rows.forEach(row => tbody.appendChild(row));
     }
     
+    // Ajuste para exibir nomes de meses também na impressão (filtros selecionados)
     function updatePrintSummary() {
       let filters = [];
-      if (document.getElementById("filter-year").value !== "all") {
-        filters.push("Ano: " + document.getElementById("filter-year").value);
+      
+      const selectedYear = document.getElementById("filter-year").value;
+      const selectedMonth = document.getElementById("filter-month").value;
+      const selectedCategoria = document.getElementById("filter-categoria").value;
+      const selectedForma = document.getElementById("filter-forma").value;
+      const selectedCredor = document.getElementById("filter-credor").value;
+      const selectedPago = document.getElementById("filter-pago").value;
+      
+      if (selectedYear !== "all") {
+        filters.push("Ano: " + selectedYear);
       }
-      if (document.getElementById("filter-month").value !== "all") {
-        filters.push("Mês: " + document.getElementById("filter-month").value);
+      if (selectedMonth !== "all") {
+        let twoDigit = String(selectedMonth).padStart(2, '0');
+        let monthName = monthNames[twoDigit] || selectedMonth;
+        filters.push("Mês: " + monthName);
       }
-      if (document.getElementById("filter-categoria").value !== "all") {
-        filters.push("Categoria: " + document.getElementById("filter-categoria").value);
+      if (selectedCategoria !== "all") {
+        filters.push("Categoria: " + selectedCategoria);
       }
-      if (document.getElementById("filter-forma").value !== "all") {
-        filters.push("Forma de Pgto: " + document.getElementById("filter-forma").value);
+      if (selectedForma !== "all") {
+        filters.push("Forma de Pgto: " + selectedForma);
       }
-      if (document.getElementById("filter-credor").value !== "all") {
-        filters.push("Credor: " + document.getElementById("filter-credor").value);
+      if (selectedCredor !== "all") {
+        filters.push("Credor: " + selectedCredor);
       }
-      if (document.getElementById("filter-pago").value !== "all") {
-        filters.push("Pago Por: " + document.getElementById("filter-pago").value);
+      if (selectedPago !== "all") {
+        filters.push("Pago Por: " + selectedPago);
       }
+      
       let filterText = filters.length > 0 ? "Filtros selecionados: " + filters.join(", ") : "";
-      let totalValor = document.getElementById("total-container").textContent;
+      
       let summaryHTML = "";
-      if (filterText !== "") { summaryHTML += "<div>" + filterText + "</div>"; }
-      // Não adiciona o total novamente para evitar duplicação
+      if (filterText !== "") {
+        summaryHTML += "<div>" + filterText + "</div>";
+      }
+      // Se quiser adicionar o total também no print-summary, basta descomentar:
+      // let totalValor = document.getElementById("total-container").textContent;
+      // summaryHTML += "<div>" + totalValor + "</div>";
+      
       document.getElementById("print-summary").innerHTML = summaryHTML;
     }
     window.addEventListener("beforeprint", updatePrintSummary);
@@ -698,6 +715,7 @@
           let filteredCells = keptIndices.map(index => cells[index]);
           if (filteredCells.length !== headers.length) continue;
           
+          // Mapeia e filtra os dados
           if (idxDataDespesaOrig !== -1) {
             let dataDespesa = filteredCells[idxDataDespesaOrig].textContent.trim();
             if (dataDespesa === "") continue;
@@ -775,6 +793,7 @@
           tbody.appendChild(tr);
         }
         
+        // Popula os dropdowns
         function populateAllDropdowns() {
           const filterYear = document.getElementById("filter-year");
           let uniqueYearsArray = Array.from(uniqueYears);
@@ -785,6 +804,7 @@
             option.textContent = year;
             filterYear.appendChild(option);
           });
+          
           const filterMonth = document.getElementById("filter-month");
           let uniqueMonthsArray = Array.from(uniqueMonths);
           uniqueMonthsArray.sort((a, b) => parseInt(a) - parseInt(b));
@@ -796,6 +816,7 @@
             option.textContent = monthNames[twoDigit] || month;
             filterMonth.appendChild(option);
           });
+          
           const filterCategoria = document.getElementById("filter-categoria");
           let uniqueCategoriesArray = Array.from(uniqueCategories);
           uniqueCategoriesArray.sort();
@@ -805,6 +826,7 @@
             option.textContent = cat;
             filterCategoria.appendChild(option);
           });
+          
           const filterForma = document.getElementById("filter-forma");
           let uniqueFormaArray = Array.from(uniqueFormaPgto);
           uniqueFormaArray.sort();
@@ -814,6 +836,7 @@
             option.textContent = forma;
             filterForma.appendChild(option);
           });
+          
           const filterCredor = document.getElementById("filter-credor");
           let uniqueCredorArray = Array.from(uniqueCredor);
           uniqueCredorArray.sort();
@@ -823,6 +846,7 @@
             option.textContent = credor;
             filterCredor.appendChild(option);
           });
+          
           const filterPago = document.getElementById("filter-pago");
           let uniquePagoArray = Array.from(uniquePagoPor);
           uniquePagoArray.sort();
