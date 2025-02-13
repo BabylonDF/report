@@ -531,7 +531,7 @@
       rows.forEach(row => tbody.appendChild(row));
     }
     
-    // Ajuste para exibir nomes de meses também na impressão (filtros selecionados)
+    // Ajuste para exibir nomes de meses também na impressão (filtros selecionados para impressao)
     function updatePrintSummary() {
       let filters = [];
       
@@ -563,7 +563,7 @@
         filters.push("Pago Por: " + selectedPago);
       }
       
-      let filterText = filters.length > 0 ? "Filtros selecionados: " + filters.join(", ") : "";
+      let filterText = filters.length > 0 ? "Filtros: " + filters.join(", ") : "";
       
       let summaryHTML = "";
       if (filterText !== "") {
