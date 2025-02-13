@@ -34,7 +34,7 @@
     }
     .modal-content img {
       display: block;
-      margin: 0 auto 2px; /* Ajuste de margem inferior */
+      margin: 0 auto 2px; /* Margem inferior reduzida para aproximar da logo do título */
       max-width: 200px;
     }
     .modal-content h1 {
@@ -106,8 +106,16 @@
     }
     /* Botão de Impressão */
     #print-btn { font-size: 20px; background: none; border: none; color: white; cursor: pointer; margin-left: 10px; }
-    /* Total Valor Pago exibido em tela (acima da tabela) */
-    #total-container { width: 90%; margin: 10px auto; text-align: right; color: white; font-size: 20px; }
+    /* Total Valor Pago (exibido em tela, acima da tabela) */
+    #total-container {
+      width: 90%;
+      margin: 10px auto;
+      text-align: right;
+      padding-right: 30px;
+      color: black;
+      font-weight: bold;
+      font-size: 20px;
+    }
     /* Resumo para impressão */
     #print-summary { display: none; margin: 10px 5%; font-size: 16px; text-align: left; }
     /* Tabela responsiva */
@@ -116,7 +124,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      background: rgba(0, 0, 0, 0.8);
+      background: black; /* Fundo preto para as linhas da tabela */
       border: 4px solid white;
       border-radius: 8px;
     }
@@ -132,9 +140,11 @@
     /* Mini filtros (ícones de ordenação) */
     .sort-icon { cursor: pointer; user-select: none; font-size: 0.9rem; margin-left: 5px; }
     tbody td { padding: 10px; border: 1px solid white; text-align: center; white-space: nowrap; }
-    tbody tr:nth-child(even) { background-color: #222; }
+    tbody tr { background-color: black; } 
+    /* Força também as linhas pares a terem fundo preto */
+    tbody tr:nth-child(even) { background-color: black; }
     /* Título da página */
-    h1 { text-align: center; margin-top: 100px; margin-bottom: 20px; color: white; }
+    h1 { text-align: center; margin-top: 50px; margin-bottom: 20px; color: white; }
     /* Rodapé centralizado */
     footer { text-align: center; margin: 20px auto; font-size: 14px; color: white; }
     
@@ -148,7 +158,7 @@
       #print-summary { display: block; }
       #filter-container, #total-container, .no-print { display: none !important; }
       th.print-hide, td.print-hide { display: none !important; }
-      table { border: 1px solid ##0a0a0a; }
+      table { border: 1px solid #0a0a0a; }
       footer { text-align: center; }
       #print-footer {
         display: block;
@@ -681,9 +691,16 @@
               valorPagoNum = num;
               const formatted = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(num);
               td.textContent = formatted;
+              // Alinha o valor à esquerda com padding de 10px
+              td.style.textAlign = "left";
+              td.style.paddingLeft = "10px";
             }
             else {
               td.textContent = cell.textContent.trim();
+              // Se for a coluna "Descrição", justifica o conteúdo
+              if (displayHeaders[j] === "Descrição") {
+                td.style.textAlign = "justify";
+              }
             }
             if (allowedPrint.indexOf(displayHeaders[j]) !== -1) {
               td.classList.add("print-allowed");
