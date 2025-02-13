@@ -3,7 +3,7 @@
 document.getElementById("login-btn").addEventListener("click", function() {
   var username = document.getElementById("username").value;
   var password = document.getElementById("password").value;
-  // Obtém a opção selecionada no dropdown
+  // Obtém o valor selecionado no dropdown
   var option = document.getElementById("login-option").value;
   
   // Credenciais de exemplo: usuário "admin" e senha "123456"
