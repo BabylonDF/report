@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Entrada de Despesa</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    label { display: block; margin-top: 10px; }
+    input, select, textarea { width: 100%; max-width: 400px; padding: 5px; }
+    .campo-extra { margin-left: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Cadastro de Despesa</h1>
+  <!-- O atributo target com iframe oculto evita redirecionamento após envio -->
+  <form action="https://docs.google.com/forms/d/e/1FAIpQLSfeLAHorBEbFGfc0W3Dkymowz0eQuS3Sy036E0WutYNzXwqVg/formResponse" method="post" enctype="multipart/form-data" target="hidden_iframe">
+    
+    <!-- DATA -->
+    <label for="data">Data (dd/mm/aaaa):</label>
+    <input type="date" id="data" required>
+    <!-- Campos ocultos para enviar ano, mês e dia -->
+    <input type="hidden" id="data_year" name="entry.2025452004_year">
+    <input type="hidden" id="data_month" name="entry.2025452004_month">
+    <input type="hidden" id="data_day" name="entry.2025452004_day">
+    
+    <!-- CREDOR -->
+    <label for="credor">Credor:</label>
+    <input type="text" id="credor" name="entry.2050636307" required>
+    
+    <!-- CATEGORIA DE DESPESA -->
+    <label for="categoria">Categoria de Despesa:</label>
+    <select id="categoria" onchange="checkOtherCategoria()" required>
+      <option value="">Selecione...</option>
+      <option value="Materiais">1.1 - Compra de Materiais para a reforma</option>
+      <option value="equipamento">1.2 - Aquisição de equipamento / mobiliário</option>
+      <option value="Mão de Obra">1.3 - Serviços de Mão de Obra</option>
+      <option value="Profissionais">1.4 - Serviços Profissionais</option>
+      <option value="Água / Luz">1.5 - Água / Luz</option>
+      <option value="Impostos">1.6 - Impostos</option>
+      <option value="__other_option__">Outro</option>
+    </select>
+    <!-- Campo oculto que recebe o valor final -->
+    <input type="hidden" id="categoria_hidden" name="entry.1832198028">
+    <!-- Se o usuário escolher "Outro", esse campo será exibido -->
+    <div id="categoria_other_div" class="campo-extra" style="display:none;">
+      <label for="categoria_other">Especifique a Categoria de Despesa:</label>
+      <input type="text" id="categoria_other" name="entry.1832198028.other_option_response">
+    </div>
+    
+    <!-- FORMA DE PAGAMENTO -->
+    <label for="pagamento">Forma de Pagamento:</label>
+    <select id="pagamento" onchange="checkOtherPagamento()" required>
+      <option value="">Selecione...</option>
+      <option value="Pix TED">2.1 - PIX / TED</option>
+      <option value="Cartão de Crédito">2.2 - Cartão de Crédito</option>
+      <option value="Cartão de Débito">2.3 - Cartão de Débito</option>
+      <option value="Boleto Bancário">2.4 - Boleto Bancário</option>
+      <option value="Dinheiro">2.5 - Dinheiro</option>
+      <option value="__other_option__">Outro</option>
+    </select>
+    <input type="hidden" id="pagamento_hidden" name="entry.834328677">
+    <div id="pagamento_other_div" class="campo-extra" style="display:none;">
+      <label for="pagamento_other">Especifique a Forma de Pagamento:</label>
+      <input type="text" id="pagamento_other" name="entry.834328677.other_option_response">
+    </div>
+    
+    <!-- DESCRIÇÃO -->
+    <label for="descricao">Descrição:</label>
+    <textarea id="descricao" name="entry.720518645" rows="4" required></textarea>
+    
+    <!-- VALOR PAGO -->
+    <label for="valor">Valor pago (R$):</label>
+    <input type="number" step="0.01" id="valor" name="entry.353680570" required>
+    
+    <!-- CUSTEADO POR -->
+    <label for="custeado">Custeado por:</label>
+    <select id="custeado" onchange="checkOtherCusteado()" required>
+      <option value="">Selecione...</option>
+      <option value="Marcelo">Marcelo Pessoa</option>
+      <option value="Lucas">Lucas Felix</option>
+      <option value="Felix">Felix Pessoa</option>
+      <option value="__other_option__">Outro</option>
+    </select>
+    <input type="hidden" id="custeado_hidden" name="entry.330882704">
+    <div id="custeado_other_div" class="campo-extra" style="display:none;">
+      <label for="custeado_other">Especifique Custeado por:</label>
+      <input type="text" id="custeado_other" name="entry.330882704.other_option_response">
+    </div>
+    
+    <!-- COMPROVANTE DE PAGAMENTO -->
+    <label for="comprovante">Comprovante de pagamento:</label>
+    <input type="file" id="comprovante" name="entry.1051354235">
+    
+    <!-- RECIBO/NOTA FISCAL -->
+    <label for="nota">Recibo/Nota Fiscal:</label>
+    <input type="file" id="nota" name="entry.1001310029">
+    
+    <br><br>
+    <input type="submit" value="Enviar">
+  </form>
+  
+  <!-- Iframe oculto para evitar redirecionamento -->
+  <iframe name="hidden_iframe" style="display:none;"></iframe>
+  
+  <script>
+    // Atualiza os campos de data (ano, mês, dia) com base no input do tipo date
+    document.getElementById('data').addEventListener('change', function() {
+      var dateValue = this.value; // formato: yyyy-mm-dd
+      if(dateValue) {
+        var parts = dateValue.split("-");
+        document.getElementById('data_year').value = parts[0];
+        document.getElementById('data_month').value = parseInt(parts[1], 10);
+        document.getElementById('data_day').value = parseInt(parts[2], 10);
+      }
+    });
+    
+    // Função para a Categoria de Despesa
+    function checkOtherCategoria() {
+      var select = document.getElementById('categoria');
+      var hiddenInput = document.getElementById('categoria_hidden');
+      var otherDiv = document.getElementById('categoria_other_div');
+      if (select.value === "__other_option__") {
+        hiddenInput.value = "__other_option__";
+        otherDiv.style.display = "block";
+      } else {
+        hiddenInput.value = select.value;
+        otherDiv.style.display = "none";
+        document.getElementById('categoria_other').value = "";
+      }
+    }
+    
+    // Função para a Forma de Pagamento
+    function checkOtherPagamento() {
+      var select = document.getElementById('pagamento');
+      var hiddenInput = document.getElementById('pagamento_hidden');
+      var otherDiv = document.getElementById('pagamento_other_div');
+      if (select.value === "__other_option__") {
+        hiddenInput.value = "__other_option__";
+        otherDiv.style.display = "block";
+      } else {
+        hiddenInput.value = select.value;
+        otherDiv.style.display = "none";
+        document.getElementById('pagamento_other').value = "";
+      }
+    }
+    
+    // Função para o campo "Custeado por"
+    function checkOtherCusteado() {
+      var select = document.getElementById('custeado');
+      var hiddenInput = document.getElementById('custeado_hidden');
+      var otherDiv = document.getElementById('custeado_other_div');
+      if (select.value === "__other_option__") {
+        hiddenInput.value = "__other_option__";
+        otherDiv.style.display = "block";
+      } else {
+        hiddenInput.value = select.value;
+        otherDiv.style.display = "none";
+        document.getElementById('custeado_other').value = "";
+      }
+    }
+  </script>
+</body>
+</html>
