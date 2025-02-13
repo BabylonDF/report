@@ -5,25 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Favicon -->
   <link rel="icon" href="logo.png" type="image/x-icon" />
-  <title>Babylon Delicatessen - Despesas</title>
+  <title>|-Babylon Delicatessen - Despesas</title>
   
   <!-- Importa a fonte Orbitron para efeito futurista -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
   
   <style>
-     .light-mode {
-      background-color: white;
-      color: black;
-    }
-    .theme-toggle {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-    }
     /* Modal de Login */
     .modal {
       display: flex;
@@ -44,7 +31,6 @@
       width: 300px;
       text-align: center;
       font-family: sans-serif;
-      border: 3px solid #333;
     }
     .modal-content img {
       display: block;
@@ -307,10 +293,6 @@
   
   <!-- Resto do script da página (funções de filtros, ordenação, etc.) -->
   <script>
-    document.getElementById('theme-toggle').addEventListener('click', function() {
-      document.body.classList.toggle('light-mode');
-      this.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
-    });
     // Função para normalizar texto (remove acentuação e converte para minúsculas)
     function normalizeText(text) {
       return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
