@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>|- Babylon Delicatessen - Despesas</title>
+  <!-- Favicon -->
+  <link rel="icon" href="logo.png" type="image/x-icon" />
+  <title>Babylon Delicatessen - Despesas</title>
   
   <!-- Importa a fonte Orbitron para efeito futurista -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
@@ -30,10 +32,9 @@
       text-align: center;
       font-family: sans-serif;
     }
-    /* A logo terá uma margem inferior pequena para aproximá-la do título */
     .modal-content img {
       display: block;
-      margin: 0 auto 2px; 
+      margin: 0 auto 2px; /* Ajuste de margem inferior para aproximar a logo do título */
       max-width: 200px;
     }
     .modal-content h1 {
@@ -73,6 +74,15 @@
       color: red;
       font-size: 0.9em;
       margin-top: 5px;
+    }
+    /* Espaço para as opções de login */
+    .login-options {
+      margin: 10px 0;
+      text-align: left;
+      font-size: 0.9em;
+    }
+    .login-options input {
+      margin-right: 5px;
     }
     
     /* Resto do CSS da página */
@@ -160,6 +170,15 @@
       <h2>Login</h2>
       <input type="text" id="username" placeholder="Usuário" />
       <input type="password" id="password" placeholder="Senha" />
+      
+      <!-- Opções de acesso -->
+      <div class="login-options">
+        <input type="radio" id="option-report" name="login-option" value="report" checked>
+        <label for="option-report">Ver Relatório</label><br>
+        <input type="radio" id="option-expense" name="login-option" value="expense">
+        <label for="option-expense">Lançar Despesas</label>
+      </div>
+      
       <button id="login-btn">Entrar</button>
       <div id="login-error" class="error"></div>
       <p style="margin-top: 15px; font-size: 0.9em; color: #333;">
@@ -198,8 +217,8 @@
       </div>
     </div>
     
-    <!-- Valor Total (acima da tabela) -->
-    <div id="total-container" class="no-print">Valor Total: R$ 0,00</div>
+    <!-- Total Valor Pago (acima da tabela) -->
+    <div id="total-container" class="no-print">Total Valor Pago: R$ 0,00</div>
     
     <!-- Resumo para impressão -->
     <div id="print-summary" class="print-only"></div>
@@ -223,7 +242,7 @@
   <!-- Inclui a lógica de login a partir de um arquivo externo -->
   <script src="login.js"></script>
   
-  <!-- Resto do script da página -->
+  <!-- Resto do script da página (funções de filtros, ordenação, etc.) -->
   <script>
     // Função para normalizar texto (remove acentuação e converte para minúsculas)
     function normalizeText(text) {
@@ -256,7 +275,7 @@
         }
       });
       const formattedTotal = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(total);
-      document.getElementById("total-container").textContent = "Valor Total: " + formattedTotal;
+      document.getElementById("total-container").textContent = "Total Valor Pago: " + formattedTotal;
     }
     
     function updateFilterDropdowns() {
@@ -341,7 +360,6 @@
       const selectedForma = document.getElementById("filter-forma").value;
       const selectedCredor = document.getElementById("filter-credor").value;
       const selectedPago = document.getElementById("filter-pago").value;
-      // Usa normalizeText para tornar a busca insensível a acentuação e case
       const searchQuery = normalizeText(document.getElementById("filter-search").value);
       
       const tbodyRows = document.querySelectorAll("#sheet-table tbody tr");
