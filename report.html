@@ -298,6 +298,14 @@
       return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     }
     
+    // Objeto para mapear números de meses para nomes
+    const monthNames = {
+      "01": "Janeiro", "02": "Fevereiro", "03": "Março",
+      "04": "Abril", "05": "Maio", "06": "Junho",
+      "07": "Julho", "08": "Agosto", "09": "Setembro",
+      "10": "Outubro", "11": "Novembro", "12": "Dezembro"
+    };
+    
     const publishedHtmlUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true";
     
     const uniqueMonths = new Set();
@@ -388,12 +396,24 @@
       } else {
         arr.sort();
       }
-      arr.forEach(val => {
-        const option = document.createElement("option");
-        option.value = val;
-        option.textContent = val;
-        select.appendChild(option);
-      });
+      
+      if (id === "filter-month") {
+        arr.forEach(val => {
+          const option = document.createElement("option");
+          option.value = val;
+          // Formata o valor para dois dígitos e exibe o nome do mês
+          let twoDigit = String(val).padStart(2, '0');
+          option.textContent = monthNames[twoDigit] || val;
+          select.appendChild(option);
+        });
+      } else {
+        arr.forEach(val => {
+          const option = document.createElement("option");
+          option.value = val;
+          option.textContent = val;
+          select.appendChild(option);
+        });
+      }
       
       if (arr.includes(currentValue)) {
         select.value = currentValue;
@@ -535,8 +555,7 @@
       let totalValor = document.getElementById("total-container").textContent;
       let summaryHTML = "";
       if (filterText !== "") { summaryHTML += "<div>" + filterText + "</div>"; }
-      // Não adiciona o total novamente
-      //summaryHTML += "<div>" + totalValor + "</div>";
+      // Não adiciona o total novamente para evitar duplicação
       document.getElementById("print-summary").innerHTML = summaryHTML;
     }
     window.addEventListener("beforeprint", updatePrintSummary);
@@ -772,7 +791,9 @@
           uniqueMonthsArray.forEach(function(month) {
             let option = document.createElement("option");
             option.value = month;
-            option.textContent = month;
+            // Formata o valor para dois dígitos e mostra o nome do mês
+            let twoDigit = String(month).padStart(2, '0');
+            option.textContent = monthNames[twoDigit] || month;
             filterMonth.appendChild(option);
           });
           const filterCategoria = document.getElementById("filter-categoria");
