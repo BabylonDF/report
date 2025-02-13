@@ -32,6 +32,11 @@
       text-align: center;
       font-family: sans-serif;
     }
+    .modal-content img {
+      display: block;
+      margin: 0 auto 2px; /* Margem inferior reduzida para aproximar a logo do título */
+      max-width: 200px;
+    }
     .modal-content h1 {
       margin-bottom: 5px;
       font-size: 1.5em;
@@ -54,6 +59,15 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 0.9em;
+    }
+    .modal-content select {
+      width: 95%;
+      padding: 8px;
+      margin: 5px 0 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: #333;
     }
     .modal-content button {
       padding: 8px 16px;
@@ -92,9 +106,16 @@
     }
     /* Botão de Impressão */
     #print-btn { font-size: 20px; background: none; border: none; color: white; cursor: pointer; margin-left: 10px; }
-    /* Total Valor Pago exibido em tela (acima da tabela) */
-    #total-container { width: 90%; margin: 10px auto; text-align: right; color: white; font-size: 18px; }
-    /* Resumo para impressão */
+    /* Total Valor Pago (em tela: branco) */
+    #total-container {
+      width: 90%;
+      margin: 10px auto;
+      text-align: right;
+      padding-right: 30px;
+      color: white;
+      font-size: 20px;
+    }
+    /* Resumo para impressão (será usado para exibir o total e filtros) */
     #print-summary { display: none; margin: 10px 5%; font-size: 16px; text-align: left; }
     /* Tabela responsiva */
     .table-responsive { width: 90%; margin: 20px auto; overflow-x: auto; }
@@ -102,8 +123,8 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      background: rgba(0, 0, 0, 0.8);
-      border: 4px solid white;
+      background: black; /* Fundo da tabela em tela */
+      border: 2px solid white;
       border-radius: 8px;
     }
     thead th {
@@ -114,13 +135,30 @@
       font-size: 1.1rem;
       white-space: nowrap;
       position: relative;
+      box-shadow: 0 2px 5px rgba(128,128,128,0.5); /* Sombra cinza para o cabeçalho */
     }
     /* Mini filtros (ícones de ordenação) */
     .sort-icon { cursor: pointer; user-select: none; font-size: 0.9rem; margin-left: 5px; }
-    tbody td { padding: 10px; border: 1px solid white; text-align: center; white-space: nowrap; }
-    tbody tr:nth-child(even) { background-color: #222; }
+    tbody td {
+      padding: 10px;
+      border: 1px solid white;
+      text-align: center;
+      white-space: nowrap;
+    }
+    /* Linhas de dados (na tela): alternam entre fundo transparente e um tom escuro de cinza */
+    tbody tr:nth-child(odd) { background-color: transparent; }
+    tbody tr:nth-child(even) { background-color: #4f4e4e; }
+    /* Alinhamento especial para a coluna Descrição */
+    td.description {
+      text-align: justify;
+    }
+    /* Alinhamento especial para a coluna Valor (à esquerda com padding de 10px) */
+    td.value {
+      text-align: left;
+      padding-left: 10px;
+    }
     /* Título da página */
-    h1 { text-align: center; margin-top: 100px; margin-bottom: 20px; color: white; }
+    h1 { text-align: center; margin-top: 50px; margin-bottom: 20px; color: white; }
     /* Rodapé centralizado */
     footer { text-align: center; margin: 20px auto; font-size: 14px; color: white; }
     
@@ -131,14 +169,40 @@
     @media print {
       body { background: white !important; color: black !important; }
       h1 { color: black !important; }
+      /* Exibe o resumo de filtros e total para impressão */
       #print-summary { display: block; }
-      #filter-container, #total-container, .no-print { display: none !important; }
+      /* Exibe o Total Valor Pago para impressão com o estilo desejado */
+      #total-container {
+        display: block;
+        text-align: right;
+        padding-right: 30px;
+        color: black;
+        font-weight: bold;
+        font-size: 20px;
+      }
+      /* Oculta os filtros e elementos com classe no-print, exceto o total-container */
+      #filter-container, .no-print:not(#total-container) { display: none !important; }
+      /* Exibe somente as colunas com classe print-allowed */
       th.print-hide, td.print-hide { display: none !important; }
-      table { border: 1px solid #000; }
-      footer { text-align: center; }
+      /* Tabela para impressão: bordas internas e externas pretas, fundo branco */
+      table {
+        border: 1px solid #0a0a0a;
+        background: white;
+      }
+      thead th, tbody td {
+        border: 1px solid black;
+      }
+      thead th {
+        box-shadow: 0 2px 5px rgba(128,128,128,0.5);
+      }
+      /* Linhas de dados (na impressão): alternam entre branco e cinza claro (#f2f2f2) */
+      tbody tr:nth-child(odd) { background-color: white; }
+      tbody tr:nth-child(even) { background-color: #f2f2f2; }
+      /* Print footer: data/hora e mensagem, alinhado à direita com padding de 30px */
       #print-footer {
         display: block;
         text-align: right;
+        padding-right: 30px;
         font-size: 10px;
         margin-top: 10px;
       }
@@ -146,24 +210,31 @@
   </style>
 </head>
 <body>
-<!-- Modal de Login -->
-<div id="login-modal" class="modal">
-  <div class="modal-content">
-    <!-- Logo centralizada -->
-    <img src="logo.png" alt="Logo" style="display: block; margin: 0 auto 5px; max-width: 200px;">
-    <h1>Babylon Delicatessen</h1>
-    <p>Área restrita à administração</p>
-    <h2>Login</h2>
-    <input type="text" id="username" placeholder="Usuário" />
-    <input type="password" id="password" placeholder="Senha" />
-    <button id="login-btn">Entrar</button>
-    <div id="login-error" class="error"></div>
-    <p style="margin-top: 15px; font-size: 0.9em; color: #333;">
-      Sem acesso? <a href="https://wa.me/5561998198688" target="_blank" style="color: blue; text-decoration: underline;">Click aqui</a>.
-    </p>
+  <!-- Modal de Login -->
+  <div id="login-modal" class="modal">
+    <div class="modal-content">
+      <!-- Logo centralizada -->
+      <img src="logo.png" alt="Logo">
+      <h1>Babylon Delicatessen</h1>
+      <p>Área restrita à administração</p>
+      <h2>Login</h2>
+      <input type="text" id="username" placeholder="Usuário" />
+      <input type="password" id="password" placeholder="Senha" />
+      
+      <!-- Dropdown para escolher a opção -->
+      <select id="login-option">
+        <option value="" disabled selected>Selecione a opção</option>
+        <option value="report">Ver Relatório</option>
+        <option value="expense">Lançar Despesas</option>
+      </select>
+      
+      <button id="login-btn">Entrar</button>
+      <div id="login-error" class="error"></div>
+      <p style="margin-top: 15px; font-size: 0.9em; color: #333;">
+        Sem acesso? <a href="https://wa.me/5561998198688" target="_blank" style="color: blue; text-decoration: underline;">Clique aqui</a> para contato.
+      </p>
+    </div>
   </div>
-</div>
-
   
   <!-- Conteúdo da Página (exibido após login) -->
   <div id="page-content" style="display: none;">
@@ -195,7 +266,7 @@
       </div>
     </div>
     
-    <!-- Total Valor Pago (exibido em tela, acima da tabela) -->
+    <!-- Total Valor Pago (acima da tabela) -->
     <div id="total-container" class="no-print">Total Valor Pago: R$ 0,00</div>
     
     <!-- Resumo para impressão -->
@@ -209,7 +280,7 @@
       </table>
     </div>
     
-    <!-- Print footer: data/hora e mensagem, exibido somente na impressão -->
+    <!-- Print footer: data/hora e mensagem (somente na impressão) -->
     <div id="print-footer" class="print-only"></div>
     
     <footer class="no-print">
@@ -218,10 +289,23 @@
   </div>
   
   <!-- Inclui a lógica de login a partir de um arquivo externo -->
-  <script src="login.js"></script>
+  <script src="login1.js"></script>
   
   <!-- Resto do script da página (funções de filtros, ordenação, etc.) -->
   <script>
+    // Função para normalizar texto (remove acentuação e converte para minúsculas)
+    function normalizeText(text) {
+      return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
+    
+    // Objeto para mapear números de meses para nomes
+    const monthNames = {
+      "01": "Janeiro", "02": "Fevereiro", "03": "Março",
+      "04": "Abril", "05": "Maio", "06": "Junho",
+      "07": "Julho", "08": "Agosto", "09": "Setembro",
+      "10": "Outubro", "11": "Novembro", "12": "Dezembro"
+    };
+    
     const publishedHtmlUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true";
     
     const uniqueMonths = new Set();
@@ -312,12 +396,24 @@
       } else {
         arr.sort();
       }
-      arr.forEach(val => {
-        const option = document.createElement("option");
-        option.value = val;
-        option.textContent = val;
-        select.appendChild(option);
-      });
+      
+      if (id === "filter-month") {
+        arr.forEach(val => {
+          const option = document.createElement("option");
+          option.value = val;
+          // Formata o valor para dois dígitos e exibe o nome do mês
+          let twoDigit = String(val).padStart(2, '0');
+          option.textContent = monthNames[twoDigit] || val;
+          select.appendChild(option);
+        });
+      } else {
+        arr.forEach(val => {
+          const option = document.createElement("option");
+          option.value = val;
+          option.textContent = val;
+          select.appendChild(option);
+        });
+      }
       
       if (arr.includes(currentValue)) {
         select.value = currentValue;
@@ -333,7 +429,7 @@
       const selectedForma = document.getElementById("filter-forma").value;
       const selectedCredor = document.getElementById("filter-credor").value;
       const selectedPago = document.getElementById("filter-pago").value;
-      const searchQuery = document.getElementById("filter-search").value.toLowerCase();
+      const searchQuery = normalizeText(document.getElementById("filter-search").value);
       
       const tbodyRows = document.querySelectorAll("#sheet-table tbody tr");
       tbodyRows.forEach(function(row) {
@@ -382,7 +478,7 @@
         if (searchQuery.trim() !== "") {
           let rowText = "";
           Array.from(row.children).forEach(cell => {
-            rowText += cell.textContent.toLowerCase() + " ";
+            rowText += normalizeText(cell.textContent) + " ";
           });
           if (!rowText.includes(searchQuery)) show = false;
         }
@@ -435,31 +531,48 @@
       rows.forEach(row => tbody.appendChild(row));
     }
     
+    // Ajuste para exibir nomes de meses também na impressão (filtros selecionados para impressao)
     function updatePrintSummary() {
       let filters = [];
-      if (document.getElementById("filter-year").value !== "all") {
-        filters.push("Ano: " + document.getElementById("filter-year").value);
+      
+      const selectedYear = document.getElementById("filter-year").value;
+      const selectedMonth = document.getElementById("filter-month").value;
+      const selectedCategoria = document.getElementById("filter-categoria").value;
+      const selectedForma = document.getElementById("filter-forma").value;
+      const selectedCredor = document.getElementById("filter-credor").value;
+      const selectedPago = document.getElementById("filter-pago").value;
+      
+      if (selectedYear !== "all") {
+        filters.push("Ano: " + selectedYear);
       }
-      if (document.getElementById("filter-month").value !== "all") {
-        filters.push("Mês: " + document.getElementById("filter-month").value);
+      if (selectedMonth !== "all") {
+        let twoDigit = String(selectedMonth).padStart(2, '0');
+        let monthName = monthNames[twoDigit] || selectedMonth;
+        filters.push("Mês: " + monthName);
       }
-      if (document.getElementById("filter-categoria").value !== "all") {
-        filters.push("Categoria: " + document.getElementById("filter-categoria").value);
+      if (selectedCategoria !== "all") {
+        filters.push("Categoria: " + selectedCategoria);
       }
-      if (document.getElementById("filter-forma").value !== "all") {
-        filters.push("Forma de Pgto: " + document.getElementById("filter-forma").value);
+      if (selectedForma !== "all") {
+        filters.push("Forma de Pgto: " + selectedForma);
       }
-      if (document.getElementById("filter-credor").value !== "all") {
-        filters.push("Credor: " + document.getElementById("filter-credor").value);
+      if (selectedCredor !== "all") {
+        filters.push("Credor: " + selectedCredor);
       }
-      if (document.getElementById("filter-pago").value !== "all") {
-        filters.push("Pago Por: " + document.getElementById("filter-pago").value);
+      if (selectedPago !== "all") {
+        filters.push("Pago Por: " + selectedPago);
       }
-      let filterText = filters.length > 0 ? "Filtros selecionados: " + filters.join(", ") : "";
-      let totalValor = document.getElementById("total-container").textContent;
+      
+      let filterText = filters.length > 0 ? "Filtros: " + filters.join(", ") : "";
+      
       let summaryHTML = "";
-      if (filterText !== "") { summaryHTML += "<div>" + filterText + "</div>"; }
-      summaryHTML += "<div>" + totalValor + "</div>";
+      if (filterText !== "") {
+        summaryHTML += "<div>" + filterText + "</div>";
+      }
+      // Se quiser adicionar o total também no print-summary, basta descomentar:
+      // let totalValor = document.getElementById("total-container").textContent;
+      // summaryHTML += "<div>" + totalValor + "</div>";
+      
       document.getElementById("print-summary").innerHTML = summaryHTML;
     }
     window.addEventListener("beforeprint", updatePrintSummary);
@@ -602,6 +715,7 @@
           let filteredCells = keptIndices.map(index => cells[index]);
           if (filteredCells.length !== headers.length) continue;
           
+          // Mapeia e filtra os dados
           if (idxDataDespesaOrig !== -1) {
             let dataDespesa = filteredCells[idxDataDespesaOrig].textContent.trim();
             if (dataDespesa === "") continue;
@@ -654,9 +768,16 @@
               valorPagoNum = num;
               const formatted = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(num);
               td.textContent = formatted;
+              td.style.textAlign = "left";
+              td.style.paddingLeft = "10px";
+              td.classList.add("value");
             }
             else {
               td.textContent = cell.textContent.trim();
+              if (displayHeaders[j] === "Descrição") {
+                td.style.textAlign = "justify";
+                td.classList.add("description");
+              }
             }
             if (allowedPrint.indexOf(displayHeaders[j]) !== -1) {
               td.classList.add("print-allowed");
@@ -672,6 +793,7 @@
           tbody.appendChild(tr);
         }
         
+        // Popula os dropdowns
         function populateAllDropdowns() {
           const filterYear = document.getElementById("filter-year");
           let uniqueYearsArray = Array.from(uniqueYears);
@@ -682,15 +804,19 @@
             option.textContent = year;
             filterYear.appendChild(option);
           });
+          
           const filterMonth = document.getElementById("filter-month");
           let uniqueMonthsArray = Array.from(uniqueMonths);
           uniqueMonthsArray.sort((a, b) => parseInt(a) - parseInt(b));
           uniqueMonthsArray.forEach(function(month) {
             let option = document.createElement("option");
             option.value = month;
-            option.textContent = month;
+            // Formata o valor para dois dígitos e mostra o nome do mês
+            let twoDigit = String(month).padStart(2, '0');
+            option.textContent = monthNames[twoDigit] || month;
             filterMonth.appendChild(option);
           });
+          
           const filterCategoria = document.getElementById("filter-categoria");
           let uniqueCategoriesArray = Array.from(uniqueCategories);
           uniqueCategoriesArray.sort();
@@ -700,6 +826,7 @@
             option.textContent = cat;
             filterCategoria.appendChild(option);
           });
+          
           const filterForma = document.getElementById("filter-forma");
           let uniqueFormaArray = Array.from(uniqueFormaPgto);
           uniqueFormaArray.sort();
@@ -709,6 +836,7 @@
             option.textContent = forma;
             filterForma.appendChild(option);
           });
+          
           const filterCredor = document.getElementById("filter-credor");
           let uniqueCredorArray = Array.from(uniqueCredor);
           uniqueCredorArray.sort();
@@ -718,6 +846,7 @@
             option.textContent = credor;
             filterCredor.appendChild(option);
           });
+          
           const filterPago = document.getElementById("filter-pago");
           let uniquePagoArray = Array.from(uniquePagoPor);
           uniquePagoArray.sort();
@@ -732,6 +861,7 @@
         populateAllDropdowns();
         addFilterListeners();
         applyFilter();
+        // Ordena inicialmente a coluna "Data" em ordem descendente (data atual no topo)
         sortTableByColumn(displayHeaders.findIndex(h => h === "Data"), "desc", "date");
       })
       .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
