@@ -34,7 +34,7 @@
     }
     .modal-content img {
       display: block;
-      margin: 0 auto 2px; /* Margem inferior reduzida para aproximar da logo do título */
+      margin: 0 auto 2px; /* Margem inferior reduzida para aproximar a logo do título */
       max-width: 200px;
     }
     .modal-content h1 {
@@ -106,17 +106,16 @@
     }
     /* Botão de Impressão */
     #print-btn { font-size: 20px; background: none; border: none; color: white; cursor: pointer; margin-left: 10px; }
-    /* Total Valor Pago (exibido em tela, acima da tabela) */
+    /* Total Valor Pago (em tela: branco) */
     #total-container {
       width: 90%;
       margin: 10px auto;
       text-align: right;
       padding-right: 30px;
-      color: black;
-      font-weight: bold;
+      color: white;
       font-size: 20px;
     }
-    /* Resumo para impressão */
+    /* Resumo para impressão (será usado para exibir o total e filtros) */
     #print-summary { display: none; margin: 10px 5%; font-size: 16px; text-align: left; }
     /* Tabela responsiva */
     .table-responsive { width: 90%; margin: 20px auto; overflow-x: auto; }
@@ -124,7 +123,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      background: black; /* Fundo preto para as linhas da tabela */
+      background: black; /* Fundo da tabela em tela */
       border: 4px solid white;
       border-radius: 8px;
     }
@@ -136,13 +135,28 @@
       font-size: 1.1rem;
       white-space: nowrap;
       position: relative;
+      box-shadow: 0 2px 5px rgba(128,128,128,0.5); /* Sombra cinza para o cabeçalho */
     }
     /* Mini filtros (ícones de ordenação) */
     .sort-icon { cursor: pointer; user-select: none; font-size: 0.9rem; margin-left: 5px; }
-    tbody td { padding: 10px; border: 1px solid white; text-align: center; white-space: nowrap; }
-    tbody tr { background-color: black; } 
-    /* Força também as linhas pares a terem fundo preto */
-    tbody tr:nth-child(even) { background-color: black; }
+    tbody td {
+      padding: 10px;
+      border: 1px solid white;
+      text-align: center;
+      white-space: nowrap;
+    }
+    /* Linhas de dados (na tela): alternam entre fundo transparente e um tom escuro de cinza */
+    tbody tr:nth-child(odd) { background-color: transparent; }
+    tbody tr:nth-child(even) { background-color: #444; }
+    /* Alinhamento especial para a coluna Descrição */
+    td.description {
+      text-align: justify;
+    }
+    /* Alinhamento especial para a coluna Valor (à esquerda com padding de 10px) */
+    td.value {
+      text-align: left;
+      padding-left: 10px;
+    }
     /* Título da página */
     h1 { text-align: center; margin-top: 50px; margin-bottom: 20px; color: white; }
     /* Rodapé centralizado */
@@ -155,11 +169,36 @@
     @media print {
       body { background: white !important; color: black !important; }
       h1 { color: black !important; }
+      /* Exibe o resumo de filtros e total para impressão */
       #print-summary { display: block; }
-      #filter-container, #total-container, .no-print { display: none !important; }
+      /* Exibe o Total Valor Pago para impressão com estilo diferente */
+      #total-container {
+        display: block;
+        text-align: right;
+        padding-right: 30px;
+        color: black;
+        font-weight: bold;
+        font-size: 20px;
+      }
+      /* Oculta os filtros e elementos com classe no-print, exceto os que queremos imprimir */
+      #filter-container, .no-print { display: none !important; }
+      /* Na impressão, apenas as colunas com classe print-allowed serão exibidas */
       th.print-hide, td.print-hide { display: none !important; }
-      table { border: 1px solid #0a0a0a; }
-      footer { text-align: center; }
+      /* Tabela para impressão: bordas internas e externas pretas, sombra no cabeçalho */
+      table {
+        border: 1px solid #0a0a0a;
+        background: white;
+      }
+      thead th, tbody td {
+        border: 1px solid black;
+      }
+      thead th {
+        box-shadow: 0 2px 5px rgba(128,128,128,0.5);
+      }
+      /* Linhas de dados (na impressão): alternam entre branco e cinza claro (#f2f2f2) */
+      tbody tr:nth-child(odd) { background-color: white; }
+      tbody tr:nth-child(even) { background-color: #f2f2f2; }
+      /* Print footer: data/hora e mensagem */
       #print-footer {
         display: block;
         text-align: right;
@@ -691,15 +730,15 @@
               valorPagoNum = num;
               const formatted = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(num);
               td.textContent = formatted;
-              // Alinha o valor à esquerda com padding de 10px
               td.style.textAlign = "left";
               td.style.paddingLeft = "10px";
+              td.classList.add("value");
             }
             else {
               td.textContent = cell.textContent.trim();
-              // Se for a coluna "Descrição", justifica o conteúdo
               if (displayHeaders[j] === "Descrição") {
                 td.style.textAlign = "justify";
+                td.classList.add("description");
               }
             }
             if (allowedPrint.indexOf(displayHeaders[j]) !== -1) {
