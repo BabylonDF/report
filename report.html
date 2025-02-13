@@ -171,7 +171,7 @@
       h1 { color: black !important; }
       /* Exibe o resumo de filtros e total para impressão */
       #print-summary { display: block; }
-      /* Exibe o Total Valor Pago para impressão com estilo diferente */
+      /* Exibe o Total Valor Pago para impressão com o estilo desejado */
       #total-container {
         display: block;
         text-align: right;
@@ -180,11 +180,11 @@
         font-weight: bold;
         font-size: 20px;
       }
-      /* Oculta os filtros e elementos com classe no-print, exceto os que queremos imprimir */
-      #filter-container, .no-print { display: none !important; }
-      /* Na impressão, apenas as colunas com classe print-allowed serão exibidas */
+      /* Oculta os filtros e elementos com classe no-print, exceto o total-container */
+      #filter-container, .no-print:not(#total-container) { display: none !important; }
+      /* Exibe somente as colunas com classe print-allowed */
       th.print-hide, td.print-hide { display: none !important; }
-      /* Tabela para impressão: bordas internas e externas pretas, sombra no cabeçalho */
+      /* Tabela para impressão: bordas internas e externas pretas, fundo branco */
       table {
         border: 1px solid #0a0a0a;
         background: white;
@@ -198,7 +198,7 @@
       /* Linhas de dados (na impressão): alternam entre branco e cinza claro (#f2f2f2) */
       tbody tr:nth-child(odd) { background-color: white; }
       tbody tr:nth-child(even) { background-color: #f2f2f2; }
-      /* Print footer: data/hora e mensagem */
+      /* Print footer: data/hora e mensagem, alinhado à direita com padding de 30px */
       #print-footer {
         display: block;
         text-align: right;
