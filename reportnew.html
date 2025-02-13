@@ -11,12 +11,40 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
   
   <style>
-        .toggle-mode {
-      cursor: pointer;
-      font-size: 24px;
-      border: none;
-      background: none;
-      float: right;
+ /* Estilos para modo escuro */
+    .dark-mode {
+      background-color: black;
+      color: white;
+    }
+    .dark-mode .modal-content {
+      background: #222;
+      color: white;
+    }
+    .dark-mode select, .dark-mode input {
+      background-color: #111;
+      color: white;
+      border: 1px solid white;
+    }
+    .dark-mode table {
+      background-color: black;
+      border: 2px solid white;
+    }
+    .dark-mode thead th {
+      background-color: #222;
+      color: white;
+    }
+    .dark-mode tbody tr:nth-child(even) {
+      background-color: #333;
+    }
+    .dark-mode tbody tr:nth-child(odd) {
+      background-color: black;
+    }
+    .dark-mode .modal-content button {
+      background: #444;
+      color: white;
+    }
+    .dark-mode .toggle-mode {
+      color: white;
     }
     /* Modal de Login */
     .modal {
@@ -300,12 +328,25 @@
   
   <!-- Resto do script da página (funções de filtros, ordenação, etc.) -->
   <script>
-        // Alternar entre modo claro e escuro
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
       let button = document.querySelector('.toggle-mode');
-      button.textContent = document.body.classList.contains('dark-mode') ? '🌞' : '🌙';
+      let isDarkMode = document.body.classList.contains('dark-mode');
+
+      // Atualiza o ícone do botão
+      button.textContent = isDarkMode ? '🌞' : '🌙';
+
+      // Salva a preferência do usuário
+      localStorage.setItem('dark-mode', isDarkMode);
     }
+
+    // Aplica a preferência salva ao carregar a página
+    window.onload = function() {
+      if (localStorage.getItem('dark-mode') === 'true') {
+        document.body.classList.add('dark-mode');
+        document.querySelector('.toggle-mode').textContent = '🌞';
+      }
+    };
     // Função para normalizar texto (remove acentuação e converte para minúsculas)
     function normalizeText(text) {
       return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
