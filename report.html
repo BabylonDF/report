@@ -535,7 +535,8 @@
       let totalValor = document.getElementById("total-container").textContent;
       let summaryHTML = "";
       if (filterText !== "") { summaryHTML += "<div>" + filterText + "</div>"; }
-      summaryHTML += "<div>" + totalValor + "</div>";
+      // Não adiciona o total novamente
+      //summaryHTML += "<div>" + totalValor + "</div>";
       document.getElementById("print-summary").innerHTML = summaryHTML;
     }
     window.addEventListener("beforeprint", updatePrintSummary);
