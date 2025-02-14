@@ -5,20 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Favicon -->
   <link rel="icon" href="logo.png" type="image/x-icon" />
-  <title>Babylon Delicatessen - Despesas</title>
-   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <title>|-Babylon Delicatessen - Despesas</title>
+  
   <!-- Importa a fonte Orbitron para efeito futurista -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
   
   <style>
-    #particles-js {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    z-index: -1;
-}
-
     /* Modal de Login */
     .modal {
       display: flex;
@@ -219,7 +211,6 @@
   </style>
 </head>
 <body>
- <div id="particles-js"></div>
   <!-- Modal de Login -->
   <div id="login-modal" class="modal">
     <div class="modal-content">
@@ -303,49 +294,6 @@
   
   <!-- Resto do script da página (funções de filtros, ordenação, etc.) -->
   <script>
-    particlesJS("particles-js", {
-    particles: {
-        number: {
-            value: 100, // Quantidade de partículas
-            density: { enable: true, value_area: 800 }
-        },
-        color: { value: "#ffffff" },
-        shape: { type: "circle" },
-        opacity: {
-            value: 0.5,
-            random: true,
-            anim: { enable: true, speed: 1, opacity_min: 0.1, sync: false }
-        },
-        size: {
-            value: 3,
-            random: true,
-            anim: { enable: true, speed: 5, size_min: 0.1, sync: false }
-        },
-        move: {
-            enable: true,
-            speed: 1.5,
-            direction: "none",
-            random: false,
-            straight: false,
-            out_mode: "out",
-            bounce: false
-        }
-    },
-    interactivity: {
-        detect_on: "canvas",
-        events: {
-            onhover: { enable: true, mode: "repulse" },
-            onclick: { enable: true, mode: "push" },
-            resize: true
-        },
-        modes: {
-            repulse: { distance: 100, duration: 0.4 },
-            push: { particles_nb: 4 }
-        }
-    },
-    retina_detect: true
-});
-
     // Função para normalizar texto (remove acentuação e converte para minúsculas)
     function normalizeText(text) {
       return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -668,7 +616,7 @@
           "[form publisher] edit url",
           "[form publisher] doc url",
           "[form publisher] increment",
-          "Endereço de e-mail",
+          "[form publisher] pdf url",
           "nº do documento"
         ];
         let keptIndices = [];
@@ -698,8 +646,7 @@
           "valor pago": "Valor",
           "custeado por": "Pago Por",
           "anexar comprovante de pagamento": "Comprovante pgto",
-          "anexar recibo ou nota fiscal": "Recibo/NF",
-          "[form publisher] pdf url": "Download"
+          "anexar recibo ou nota fiscal": "Recibo/NF"
         };
         let displayHeaders = headers.map(header => {
           const lower = header.toLowerCase();
@@ -800,7 +747,7 @@
           let valorPagoNum = 0;
           filteredCells.forEach((cell, j) => {
             const td = document.createElement("td");
-            if (displayHeaders[j].toLowerCase().includes("comprovante") |(displayHeaders[j].toLowerCase().includes("pdf") || displayHeaders[j].toLowerCase().includes("recibo")) {
+            if (displayHeaders[j].toLowerCase().includes("comprovante") || displayHeaders[j].toLowerCase().includes("recibo")) {
               const aTag = cell.querySelector("a");
               if (aTag && aTag.href) {
                 const a = document.createElement("a");
