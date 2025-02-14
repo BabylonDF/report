@@ -668,7 +668,6 @@
           "[form publisher] edit url",
           "[form publisher] doc url",
           "[form publisher] increment",
-          "[form publisher] pdf url",
           "Endereço de e-mail",
           "nº do documento"
         ];
@@ -699,7 +698,8 @@
           "valor pago": "Valor",
           "custeado por": "Pago Por",
           "anexar comprovante de pagamento": "Comprovante pgto",
-          "anexar recibo ou nota fiscal": "Recibo/NF"
+          "anexar recibo ou nota fiscal": "Recibo/NF",
+          "[form publisher] pdf url": "Download"
         };
         let displayHeaders = headers.map(header => {
           const lower = header.toLowerCase();
@@ -800,7 +800,7 @@
           let valorPagoNum = 0;
           filteredCells.forEach((cell, j) => {
             const td = document.createElement("td");
-            if (displayHeaders[j].toLowerCase().includes("comprovante") || displayHeaders[j].toLowerCase().includes("recibo")) {
+            if (displayHeaders[j].toLowerCase().includes("comprovante") |(displayHeaders[j].toLowerCase().includes("pdf") || displayHeaders[j].toLowerCase().includes("recibo")) {
               const aTag = cell.querySelector("a");
               if (aTag && aTag.href) {
                 const a = document.createElement("a");
