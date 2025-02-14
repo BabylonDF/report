@@ -11,6 +11,53 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
   
   <style>
+    /* Definição de variáveis para os temas */
+    :root {
+      --background-color: #fff;
+      --text-color: #000;
+      --primary-bg: #f5f5f5;
+      --border-color: #000;
+      --header-bg: #e0e0e0;
+      --modal-bg: #fff;
+      --button-bg: #111;
+      --button-text: #fff;
+    }
+    /* Modo escuro */
+    .dark-mode {
+      --background-color: #111;
+      --text-color: #fff;
+      --primary-bg: #222;
+      --border-color: #fff;
+      --header-bg: #333;
+      --modal-bg: #222;
+      --button-bg: #fff;
+      --button-text: #000;
+    }
+    
+    /* Reset e configurações gerais */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background-color 0.3s, color 0.3s;
+      padding-top: 50px; /* Espaço para o toggle */
+    }
+    
+    /* Botão de toggle de tema */
+    #toggle-mode {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+      z-index: 11000;
+    }
+    
     /* Modal de Login */
     .modal {
       display: flex;
@@ -25,57 +72,61 @@
       justify-content: center;
     }
     .modal-content {
-      background: #fff;
+      background: var(--modal-bg);
       padding: 20px;
       border-radius: 5px;
       width: 300px;
       text-align: center;
       font-family: sans-serif;
       border: 3px solid #6df76d;
+      transition: background-color 0.3s, color 0.3s;
     }
     .modal-content img {
       display: block;
-      margin: 0 auto 2px; /* Margem inferior reduzida para aproximar a logo do título */
+      margin: 0 auto 2px;
       max-width: 200px;
     }
     .modal-content h1 {
       margin-bottom: 5px;
       font-size: 1.5em;
-      color: #333;
+      color: var(--text-color);
     }
     .modal-content p {
       margin-bottom: 15px;
       font-size: 0.9em;
-      color: #555;
+      color: var(--text-color);
     }
     .modal-content h2 {
       margin-bottom: 10px;
       font-size: 1.2em;
-      color: #333;
+      color: var(--text-color);
     }
     .modal-content input {
       width: 90%;
       padding: 8px;
       margin: 5px 0;
-      border: 1px solid #ccc;
+      border: 1px solid var(--border-color);
       border-radius: 4px;
       font-size: 0.9em;
+      background: var(--primary-bg);
+      color: var(--text-color);
     }
     .modal-content select {
       width: 95%;
       padding: 8px;
       margin: 5px 0 10px 0;
-      border: 1px solid #ccc;
+      border: 1px solid var(--border-color);
       border-radius: 4px;
       font-size: 0.9em;
-      color: #333;
+      color: var(--text-color);
+      background: var(--primary-bg);
     }
     .modal-content button {
       padding: 8px 16px;
       margin-top: 10px;
       border: none;
-      background: #111;
-      color: #fff;
+      background: var(--button-bg);
+      color: var(--button-text);
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.9em;
@@ -86,120 +137,108 @@
       margin-top: 5px;
     }
     
-    /* Resto do CSS da página */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: black;
-      color: white;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
     /* Container dos filtros e total */
     #filter-container { width: 90%; margin: 20px auto; text-align: center; }
-    /* Linhas de filtros */
     #filter-date, #filter-other, #filter-search-container { margin-bottom: 10px; }
-    #filter-container label { margin-right: 5px; color: white; }
+    #filter-container label { margin-right: 5px; }
     #filter-container select,
     #filter-search-container input {
-      padding: 5px; font-size: 16px; border: 2px solid white; background-color: #111;
-      color: white; border-radius: 4px; margin-right: 20px;
+      padding: 5px;
+      font-size: 16px;
+      border: 2px solid var(--border-color);
+      background-color: var(--primary-bg);
+      color: var(--text-color);
+      border-radius: 4px;
+      margin-right: 20px;
+      transition: background-color 0.3s, color 0.3s;
     }
+    
     /* Botão de Impressão */
-    #print-btn { font-size: 20px; background: none; border: none; color: white; cursor: pointer; margin-left: 10px; }
-    /* Total Valor Pago (em tela: branco) */
+    #print-btn { 
+      font-size: 20px; 
+      background: none; 
+      border: none; 
+      color: var(--text-color); 
+      cursor: pointer; 
+      margin-left: 10px; 
+    }
+    
+    /* Total Valor Pago */
     #total-container {
       width: 90%;
       margin: 10px auto;
       text-align: right;
       padding-right: 30px;
-      color: white;
       font-size: 20px;
     }
-    /* Resumo para impressão (será usado para exibir o total e filtros) */
+    
+    /* Resumo para impressão */
     #print-summary { display: none; margin: 10px 5%; font-size: 16px; text-align: left; }
+    
     /* Tabela responsiva */
     .table-responsive { width: 90%; margin: 20px auto; overflow-x: auto; }
-    /* Tabela para visualização em tela */
     table {
       width: 100%;
       border-collapse: collapse;
-      background: black; /* Fundo da tabela em tela */
-      border: 2px solid white;
+      background: var(--background-color);
+      border: 2px solid var(--border-color);
       border-radius: 8px;
+      transition: background-color 0.3s, border-color 0.3s;
     }
     thead th {
       padding: 10px;
-      border: 1px solid white;
+      border: 1px solid var(--border-color);
       text-align: center;
-      background-color: #111;
+      background-color: var(--header-bg);
       font-size: 1.1rem;
       white-space: nowrap;
       position: relative;
-      box-shadow: 0 2px 5px rgba(128,128,128,0.5); /* Sombra cinza para o cabeçalho */
+      box-shadow: 0 2px 5px rgba(128,128,128,0.5);
+      transition: background-color 0.3s;
     }
-    /* Mini filtros (ícones de ordenação) */
     .sort-icon { cursor: pointer; user-select: none; font-size: 0.9rem; margin-left: 5px; }
     tbody td {
       padding: 10px;
-      border: 1px solid white;
+      border: 1px solid var(--border-color);
       text-align: center;
       white-space: nowrap;
     }
-    /* Linhas de dados (na tela): alternam entre fundo transparente e um tom escuro de cinza */
-    tbody tr:nth-child(odd) { background-color: transparent; }
-    tbody tr:nth-child(even) { background-color: #4f4e4e; }
-    /* Alinhamento especial para a coluna Descrição */
-    td.description {
-      text-align: justify;
-    }
-    /* Alinhamento especial para a coluna Valor (à esquerda com padding de 10px) */
-    td.value {
-      text-align: left;
-      padding-left: 10px;
-    }
-    /* Título da página */
-    h1 { text-align: center; margin-top: 50px; margin-bottom: 20px; color: white; }
-    /* Rodapé centralizado */
-    footer { text-align: center; margin: 20px auto; font-size: 14px; color: white; }
+    tbody tr:nth-child(odd) { background-color: var(--background-color); }
+    tbody tr:nth-child(even) { background-color: var(--primary-bg); }
+    td.description { text-align: justify; }
+    td.value { text-align: left; padding-left: 10px; }
+    h1 { text-align: center; margin-top: 50px; margin-bottom: 20px; }
+    footer { text-align: center; margin: 20px auto; font-size: 14px; }
     
     /* Oculta na web as colunas "Categoria", "Forma de Pgto" e "Pago Por" */
     @media screen { .hide-web { display: none; } }
     
     /* Regras para impressão */
     @media print {
-      body { background: white !important; color: black !important; }
-      h1 { color: black !important; }
-      /* Exibe o resumo de filtros e total para impressão */
+      body { background: #fff !important; color: #000 !important; }
+      h1 { color: #000 !important; }
       #print-summary { display: block; }
-      /* Exibe o Total Valor Pago para impressão com o estilo desejado */
       #total-container {
         display: block;
         text-align: right;
         padding-right: 30px;
-        color: black;
         font-weight: bold;
         font-size: 20px;
       }
-      /* Oculta os filtros e elementos com classe no-print, exceto o total-container */
       #filter-container, .no-print:not(#total-container) { display: none !important; }
-      /* Exibe somente as colunas com classe print-allowed */
       th.print-hide, td.print-hide { display: none !important; }
-      /* Tabela para impressão: bordas internas e externas pretas, fundo branco */
       table {
         border: 1px solid #0a0a0a;
-        background: white;
+        background: #fff;
       }
       thead th, tbody td {
-        border: 1px solid black;
+        border: 1px solid #000;
       }
       thead th {
         box-shadow: 0 2px 5px rgba(128,128,128,0.5);
       }
-      /* Linhas de dados (na impressão): alternam entre branco e cinza claro (#f2f2f2) */
-      tbody tr:nth-child(odd) { background-color: white; }
+      tbody tr:nth-child(odd) { background-color: #fff; }
       tbody tr:nth-child(even) { background-color: #f2f2f2; }
-      /* Print footer: data/hora e mensagem, alinhado à direita com padding de 30px */
       #print-footer {
         display: block;
         text-align: right;
@@ -210,28 +249,29 @@
     }
   </style>
 </head>
-<body>
+<body class="dark-mode">
+  <!-- Botão Toggle de Modo -->
+  <button id="toggle-mode" title="Alternar tema">
+    🌙
+  </button>
+  
   <!-- Modal de Login -->
   <div id="login-modal" class="modal">
     <div class="modal-content">
-      <!-- Logo centralizada -->
       <img src="logo.png" alt="Logo">
       <h1>Babylon Delicatessen</h1>
       <p>Área restrita à administração</p>
       <h2>Login</h2>
       <input type="text" id="username" placeholder="Usuário" />
       <input type="password" id="password" placeholder="Senha" />
-      
-      <!-- Dropdown para escolher a opção -->
       <select id="login-option">
         <option value="" disabled selected>Selecione a opção</option>
         <option value="report">Ver Relatório</option>
         <option value="expense">Lançar Despesas</option>
       </select>
-      
       <button id="login-btn">Entrar</button>
       <div id="login-error" class="error"></div>
-      <p style="margin-top: 15px; font-size: 0.9em; color: #333;">
+      <p style="margin-top: 15px; font-size: 0.9em;">
         Sem acesso? <a href="https://wa.me/5561998198688" target="_blank" style="color: blue; text-decoration: underline;">Clique aqui</a> para contato.
       </p>
     </div>
@@ -241,14 +281,13 @@
   <div id="page-content" style="display: none;">
     <h1>Relatório de Despesas - Babylon Delicatessen</h1>
     
-    <!-- Área dos filtros (apenas para visualização em tela) -->
+    <!-- Área dos filtros -->
     <div id="filter-container" class="no-print">
       <div id="filter-date">
         <label for="filter-year">Ano:</label>
         <select id="filter-year"><option value="all">Todos</option></select>
         <label for="filter-month">Mês:</label>
         <select id="filter-month"><option value="all">Todos</option></select>
-        <!-- Botão de Impressão -->
         <button id="print-btn" onclick="window.print()" title="Imprimir (CTRL+P)">🖨️</button>
       </div>
       <div id="filter-other">
@@ -267,7 +306,7 @@
       </div>
     </div>
     
-    <!-- Total Valor Pago (acima da tabela) -->
+    <!-- Total Valor Pago -->
     <div id="total-container" class="no-print">Total Valor Pago: R$ 0,00</div>
     
     <!-- Resumo para impressão -->
@@ -281,7 +320,7 @@
       </table>
     </div>
     
-    <!-- Print footer: data/hora e mensagem (somente na impressão) -->
+    <!-- Rodapé da impressão -->
     <div id="print-footer" class="print-only"></div>
     
     <footer class="no-print">
@@ -289,17 +328,28 @@
     </footer>
   </div>
   
-  <!-- Inclui a lógica de login a partir de um arquivo externo -->
+  <!-- Script do login -->
   <script src="login1.js"></script>
   
-  <!-- Resto do script da página (funções de filtros, ordenação, etc.) -->
+  <!-- Script para filtros, ordenação e carregamento dos dados -->
   <script>
-    // Função para normalizar texto (remove acentuação e converte para minúsculas)
+    // Função para alternar o tema
+    const toggleBtn = document.getElementById("toggle-mode");
+    toggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      // Altera o ícone do botão
+      if(document.body.classList.contains("dark-mode")) {
+        toggleBtn.textContent = "🌙";
+      } else {
+        toggleBtn.textContent = "☀️";
+      }
+    });
+    
+    // Função para normalizar texto
     function normalizeText(text) {
       return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     }
     
-    // Objeto para mapear números de meses para nomes
     const monthNames = {
       "01": "Janeiro", "02": "Fevereiro", "03": "Março",
       "04": "Abril", "05": "Maio", "06": "Junho",
@@ -402,7 +452,6 @@
         arr.forEach(val => {
           const option = document.createElement("option");
           option.value = val;
-          // Formata o valor para dois dígitos e exibe o nome do mês
           let twoDigit = String(val).padStart(2, '0');
           option.textContent = monthNames[twoDigit] || val;
           select.appendChild(option);
@@ -532,7 +581,6 @@
       rows.forEach(row => tbody.appendChild(row));
     }
     
-    // Ajuste para exibir nomes de meses também na impressão (filtros selecionados para impressao)
     function updatePrintSummary() {
       let filters = [];
       
@@ -565,15 +613,7 @@
       }
       
       let filterText = filters.length > 0 ? "Filtros: " + filters.join(", ") : "";
-      
-      let summaryHTML = "";
-      if (filterText !== "") {
-        summaryHTML += "<div>" + filterText + "</div>";
-      }
-      // Se quiser adicionar o total também no print-summary, basta descomentar:
-      // let totalValor = document.getElementById("total-container").textContent;
-      // summaryHTML += "<div>" + totalValor + "</div>";
-      
+      let summaryHTML = filterText !== "" ? "<div>" + filterText + "</div>" : "";
       document.getElementById("print-summary").innerHTML = summaryHTML;
     }
     window.addEventListener("beforeprint", updatePrintSummary);
@@ -716,7 +756,6 @@
           let filteredCells = keptIndices.map(index => cells[index]);
           if (filteredCells.length !== headers.length) continue;
           
-          // Mapeia e filtra os dados
           if (idxDataDespesaOrig !== -1) {
             let dataDespesa = filteredCells[idxDataDespesaOrig].textContent.trim();
             if (dataDespesa === "") continue;
@@ -794,7 +833,6 @@
           tbody.appendChild(tr);
         }
         
-        // Popula os dropdowns
         function populateAllDropdowns() {
           const filterYear = document.getElementById("filter-year");
           let uniqueYearsArray = Array.from(uniqueYears);
@@ -812,7 +850,6 @@
           uniqueMonthsArray.forEach(function(month) {
             let option = document.createElement("option");
             option.value = month;
-            // Formata o valor para dois dígitos e mostra o nome do mês
             let twoDigit = String(month).padStart(2, '0');
             option.textContent = monthNames[twoDigit] || month;
             filterMonth.appendChild(option);
@@ -862,7 +899,6 @@
         populateAllDropdowns();
         addFilterListeners();
         applyFilter();
-        // Ordena inicialmente a coluna "Data" em ordem descendente (data atual no topo)
         sortTableByColumn(displayHeaders.findIndex(h => h === "Data"), "desc", "date");
       })
       .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
