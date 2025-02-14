@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Favicon -->
   <link rel="icon" href="logo.png" type="image/x-icon" />
-  <title>-Babylon Delicatessen - Despesas</title>
+  <title>|-Babylon Delicatessen - Despesas</title>
   
   <!-- Importa a fonte Orbitron para efeito futurista -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap">
@@ -186,7 +186,7 @@
       transition: background-color 0.3s, border-color 0.3s;
     }
     thead th {
-      padding: 10px;
+      padding: 5px; /* Reduzido de 10px para 5px */
       border: 1px solid var(--border-color);
       text-align: center;
       background-color: var(--header-bg);
@@ -198,7 +198,7 @@
     }
     .sort-icon { cursor: pointer; user-select: none; font-size: 0.9rem; margin-left: 5px; }
     tbody td {
-      padding: 10px;
+      padding: 5px; /* Reduzido de 10px para 5px */
       border: 1px solid var(--border-color);
       text-align: center;
       white-space: nowrap;
@@ -337,7 +337,6 @@
     const toggleBtn = document.getElementById("toggle-mode");
     toggleBtn.addEventListener("click", () => {
       document.body.classList.toggle("dark-mode");
-      // Altera o ícone do botão
       if(document.body.classList.contains("dark-mode")) {
         toggleBtn.textContent = "🌙";
       } else {
@@ -358,6 +357,29 @@
     };
     
     const publishedHtmlUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXuHtwXJyCycBXp61Lf-_Q17NY-p7bo_V-e2HrC_G2XI8r7DLZDaCQEUcnuqq7bSST4gLrJsJwtOWU/pubhtml?gid=1163522917&single=true";
+    
+    // Atualizamos as colunas a serem excluídas:
+    const columnsToExclude = [
+      "carimbo de data/hora",
+      "[form publisher] edit url",
+      "[form publisher] doc url",
+      "[form publisher] increment",
+      "nº do documento",
+      "anexar comprovante de pagamento",
+      "anexar recibo ou nota fiscal"
+    ];
+    
+    // Converte o header conforme desejado, mapeando também o pdf url para Download
+    const headerMapping = {
+      "data da despesa": "Data",
+      "selecione a categoria": "Categoria",
+      "escolha a opção de pagamento": "Forma de Pgto",
+      "nome do credor": "Credor",
+      "descrição": "Descrição",
+      "valor pago": "Valor",
+      "custeado por": "Pago Por",
+      "[form publisher] pdf url": "Download"
+    };
     
     const uniqueMonths = new Set();
     const uniqueYears = new Set();
@@ -651,14 +673,8 @@
             headerCells = headerCells.slice(1);
           }
         }
-        const columnsToExclude = [
-          "carimbo de data/hora",
-          "[form publisher] edit url",
-          "[form publisher] doc url",
-          "[form publisher] increment",
-          "[form publisher] pdf url",
-          "nº do documento"
-        ];
+        
+        // Aplica a exclusão dos índices de colunas, comparando os headers em minúsculo
         let keptIndices = [];
         let headers = [];
         headerCells.forEach((cell, i) => {
@@ -666,7 +682,10 @@
           const lower = headerText.toLowerCase();
           let exclude = false;
           for (const col of columnsToExclude) {
-            if (lower.includes(col)) { exclude = true; break; }
+            if (lower.includes(col)) { 
+              exclude = true; 
+              break; 
+            }
           }
           if (!exclude) {
             keptIndices.push(i);
@@ -674,20 +693,7 @@
           }
         });
         
-        const idxDataDespesaOrig = headers.findIndex(text => text.toLowerCase().includes("data da despesa"));
-        const idxValorPagoOrig = headers.findIndex(text => text.toLowerCase().includes("valor pago"));
-        
-        const headerMapping = {
-          "data da despesa": "Data",
-          "selecione a categoria": "Categoria",
-          "escolha a opção de pagamento": "Forma de Pgto",
-          "nome do credor": "Credor",
-          "descrição": "Descrição",
-          "valor pago": "Valor",
-          "custeado por": "Pago Por",
-          "anexar comprovante de pagamento": "Comprovante pgto",
-          "anexar recibo ou nota fiscal": "Recibo/NF"
-        };
+        // Mapeia os headers conforme definido
         let displayHeaders = headers.map(header => {
           const lower = header.toLowerCase();
           return headerMapping[lower] || header;
@@ -695,10 +701,12 @@
         
         const thead = document.querySelector("#sheet-table thead");
         const headerTr = document.createElement("tr");
-        const allowedPrint = ["Data", "Credor", "Descrição", "Valor"];
+        // Define quais colunas são permitidas na impressão (ajuste se necessário)
+        const allowedPrint = ["Data", "Credor", "Descrição", "Valor", "Download"];
         displayHeaders.forEach((header, j) => {
           const th = document.createElement("th");
           th.textContent = header;
+          // Adiciona ícone de ordenação para colunas específicas
           if (header === "Data" || header === "Credor" || header === "Valor") {
             let sortIcon = document.createElement("span");
             sortIcon.classList.add("sort-icon");
@@ -756,6 +764,8 @@
           let filteredCells = keptIndices.map(index => cells[index]);
           if (filteredCells.length !== headers.length) continue;
           
+          // Mapeia dados para filtros
+          const idxDataDespesaOrig = headers.findIndex(text => text.toLowerCase().includes("data da despesa"));
           if (idxDataDespesaOrig !== -1) {
             let dataDespesa = filteredCells[idxDataDespesaOrig].textContent.trim();
             if (dataDespesa === "") continue;
@@ -765,20 +775,24 @@
               uniqueYears.add(parts[2]);
             }
           }
-          if (idxCategoriaFinal !== -1) {
-            let cat = filteredCells[idxCategoriaFinal].textContent.trim();
+          const idxCategoriaFinalLocal = headers.findIndex(text => text.toLowerCase().includes("selecione a categoria"));
+          if (idxCategoriaFinalLocal !== -1) {
+            let cat = filteredCells[idxCategoriaFinalLocal].textContent.trim();
             if (cat !== "") uniqueCategories.add(cat);
           }
-          if (idxFormaFinal !== -1) {
-            let forma = filteredCells[idxFormaFinal].textContent.trim();
+          const idxFormaFinalLocal = headers.findIndex(text => text.toLowerCase().includes("escolha a opção de pagamento"));
+          if (idxFormaFinalLocal !== -1) {
+            let forma = filteredCells[idxFormaFinalLocal].textContent.trim();
             if (forma !== "") uniqueFormaPgto.add(forma);
           }
-          if (idxCredorFinal !== -1) {
-            let credor = filteredCells[idxCredorFinal].textContent.trim();
+          const idxCredorFinalLocal = headers.findIndex(text => text.toLowerCase().includes("nome do credor"));
+          if (idxCredorFinalLocal !== -1) {
+            let credor = filteredCells[idxCredorFinalLocal].textContent.trim();
             if (credor !== "") uniqueCredor.add(credor);
           }
-          if (idxPagoFinal !== -1) {
-            let pago = filteredCells[idxPagoFinal].textContent.trim();
+          const idxPagoFinalLocal = headers.findIndex(text => text.toLowerCase().includes("custeado por"));
+          if (idxPagoFinalLocal !== -1) {
+            let pago = filteredCells[idxPagoFinalLocal].textContent.trim();
             if (pago !== "") uniquePagoPor.add(pago);
           }
           
@@ -786,7 +800,8 @@
           let valorPagoNum = 0;
           filteredCells.forEach((cell, j) => {
             const td = document.createElement("td");
-            if (displayHeaders[j].toLowerCase().includes("comprovante") || displayHeaders[j].toLowerCase().includes("recibo")) {
+            // Se for a coluna Download, exibe link com emoji de download
+            if (displayHeaders[j].toLowerCase() === "download") {
               const aTag = cell.querySelector("a");
               if (aTag && aTag.href) {
                 const a = document.createElement("a");
@@ -798,7 +813,6 @@
               } else {
                 td.textContent = "";
               }
-              td.classList.add("no-print");
             }
             else if (displayHeaders[j].toLowerCase().includes("valor")) {
               let raw = cell.textContent.trim();
@@ -899,6 +913,7 @@
         populateAllDropdowns();
         addFilterListeners();
         applyFilter();
+        // Ordena inicialmente pela coluna "Data" em ordem decrescente
         sortTableByColumn(displayHeaders.findIndex(h => h === "Data"), "desc", "date");
       })
       .catch(error => console.error("Erro ao buscar ou processar a página publicada:", error));
